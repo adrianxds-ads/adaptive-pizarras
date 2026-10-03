@@ -1,12 +1,22 @@
 {
   "app": "Pizarras",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "build": "2026-10-03",
   "questions": 301,
-  "sessionModel": "adaptive timed study classes + quick quiz",
+  "sessionModel": "contract-mode adaptive timed study classes + quick quiz",
   "responseTimeLimit": 15,
   "recommendedClassRangeMinutes": "6-15 local / 5-20 external plan",
   "source": "Pizarras + Sarah Classes (Anki) + Plaud B2",
-  "content": "Sara B2 study · timed adaptive classes · mandatory ChatGPT JSON handoff between study classes",
-  "workflow": "study class -> JSON -> ChatGPT plan -> next study class"
+  "content": "Sara B2 study · fixed-duration contract classes · hidden global countdown · milestone cues · mandatory ChatGPT JSON handoff",
+  "workflow": "study class -> JSON -> ChatGPT plan + study window -> next contract class",
+  "contractMode": {
+    "classCountdownVisible": false,
+    "milestones": [
+      "halfway",
+      "final stretch"
+    ],
+    "durationFixedOnceStarted": true,
+    "emergencyExit": true,
+    "optionalStudyWindow": true
+  }
 }
