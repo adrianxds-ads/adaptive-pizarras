@@ -1,9 +1,25 @@
-# Pizarras · B2 study (0.2.0)
+# Pizarras 2.0 · Study Engine
 
-Study content from English class boards, Sarah Classes + Writing B2-C1 unified Anki deck (2026-09-10), and Plaud B2 classes (2026-09-14 and 2026-09-23). New questions include source references. Exercises are rewritten as self-contained language practice; generated class summaries are checked for grammatical accuracy.
+Pizarras 2.0 keeps the fixed Sara/Pizarras source bank as the curriculum anchor and changes the primary learning unit from a 15-question level to a timed adaptive study class.
 
-301 questions: 66 Speaking, 22 Connectors, 76 Grammar, 65 Vocabulary, 28 Phrasal verbs, 13 Corrections, 31 Word formation. Grammar includes Corrections in the selector; Vocabulary includes Word formation.
+The canonical bank remains 301 questions: 66 Speaking, 22 Connectors, 76 Grammar, 65 Vocabulary, 28 Phrasal verbs, 13 Corrections and 31 Word formation. Existing question IDs and the original storage key are preserved, so previous progress migrates forward.
 
-Removed 53 questions about correction codes, reading passages, exam logistics and context-dependent fragments. Added 111 practical exercises. Speaking is the default: expressing opinions, weighing alternatives, collaborating, comparing and speculating. Connectors can be practised separately.
+## Main study mode
 
-Existing IDs and storage key are preserved. Retired question records remain in saved progress; active coverage reflects the current bank. Statistics and medals remain available, with home statistics collapsed and lighter repetition weights for study. Sessions retain 15 questions and 15 seconds per question. All session mistakes appear in the final review.
+The default mode is CLASE ADAPTATIVA. The app recommends the duration itself, normally 6–15 minutes, using due reviews, leeches, recent accuracy and time since the previous study class. An imported ChatGPT plan can set 5–20 minutes.
+
+The class does not end after 15 questions. Questions continue until the class timer expires; the current question is always allowed to finish. The scheduler prioritises due, weak, failed and unseen items, avoids immediate repetition, and deliberately reintroduces failed items later in the same class.
+
+Retrieval progresses through RECOGNITION, RECALL and MEMORY. Speaking items are preferentially moved toward MEMORY once enough evidence exists. READ FIRST remains enabled by default; response-time metrics begin only when answer options appear.
+
+## Spaced learning
+
+Each item now stores last correctness, lapses, recall stage, interval and next due time. Correct retrievals increase the review interval; errors shorten it and trigger relearning inside the current class.
+
+## JSON bridge
+
+PIZARRAS_STUDY_STATE_V2 exports the learning state, weak items, category evidence, due reviews, recent errors and the locally recommended next class.
+
+The app accepts PIZARRAS_SESSION_PLAN_V2 and PIZARRAS_PACK_V2. A plan can set duration, focus categories, exact item IDs and new anchored variations. New items are validated before being stored and coexist with the fixed Sara bank.
+
+The former 15-question game remains available as QUIZ RÁPIDO for medals, short practice and comparison with the older model.

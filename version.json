@@ -1,10 +1,11 @@
 {
   "app": "Pizarras",
-  "version": "0.2.2",
+  "version": "2.0.0",
   "build": "2026-10-03",
   "questions": 301,
-  "sessionSize": 15,
-  "timeLimit": 15,
+  "sessionModel": "adaptive timed study classes + quick quiz",
+  "responseTimeLimit": 15,
+  "recommendedClassRangeMinutes": "6-15 local / 5-20 external plan",
   "source": "Pizarras + Sarah Classes (Anki) + Plaud B2",
-  "content": "Sara B2 study · speaking, connectors, applied grammar · optional read-first mode"
+  "content": "Sara-anchored study engine · spaced review · recall progression · JSON bridge"
 }
