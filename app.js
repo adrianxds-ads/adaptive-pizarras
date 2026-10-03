@@ -1,8 +1,9 @@
-const APP_VERSION='2.1.0';
+const APP_VERSION='2.1.1';
 const STORAGE_KEY='pizarras_state_v1';
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
 const QUICK_SIZE=15;
+const TASKER_CONTRACT_URL='http://127.0.0.1:1821/';
 const BASE_BANK=window.PIZARRAS_BANK||[];
 const $=id=>document.getElementById(id);
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -19,11 +20,11 @@ function validQuestion(q){return !!q&&typeof q.id==='string'&&typeof q.category=
 function allBank(){const map=new Map(BASE_BANK.map(q=>[q.id,q]));for(const q of state?.customItems||[])if(validQuestion(q)&&!map.has(q.id))map.set(q.id,q);return [...map.values()];}
 function byId(id){return allBank().find(q=>q.id===id)||null;}
 function freshItem(){return{attempts:0,correct:0,misses:0,totalTime:0,streak:0,lastSeen:0,lastCorrect:null,intervalDays:0,nextDueTs:0,lapses:0,recallStage:0,lastMode:'',masteredRewarded:false};}
-function freshState(){return{version:2,level:1,sessions:0,classSessions:0,quickSessions:0,answers:0,correct:0,studySec:0,points:0,items:{},history:[],answerHistory:[],customItems:[],pendingPlan:null,planHistory:[],awaitingCoachPlan:false};}
+function freshState(){return{version:2,level:1,sessions:0,classSessions:0,quickSessions:0,answers:0,correct:0,studySec:0,points:0,items:{},history:[],answerHistory:[],customItems:[],pendingPlan:null,planHistory:[],awaitingCoachPlan:false,calendarContracts:{}};}
 function normalize(){
   const hadAwaitFlag=typeof state?.awaitingCoachPlan==='boolean';
   state=Object.assign(freshState(),state||{});state.version=2;
-  state.history=Array.isArray(state.history)?state.history:[];state.answerHistory=Array.isArray(state.answerHistory)?state.answerHistory:[];state.customItems=Array.isArray(state.customItems)?state.customItems.filter(validQuestion):[];state.planHistory=Array.isArray(state.planHistory)?state.planHistory:[];
+  state.history=Array.isArray(state.history)?state.history:[];state.answerHistory=Array.isArray(state.answerHistory)?state.answerHistory:[];state.customItems=Array.isArray(state.customItems)?state.customItems.filter(validQuestion):[];state.planHistory=Array.isArray(state.planHistory)?state.planHistory:[];state.calendarContracts=state.calendarContracts&&typeof state.calendarContracts==='object'?state.calendarContracts:{};
   if(!state.items||typeof state.items!=='object')state.items={};
   for(const q of allBank())state.items[q.id]=Object.assign(freshItem(),state.items[q.id]||{});
   state.classSessions=Number(state.classSessions)||state.history.filter(x=>x?.type==='study').length;
@@ -55,6 +56,22 @@ function normalizeStudyWindow(w){if(!w||typeof w!=='object')return null;const cl
 function planWindowState(plan,now=Date.now()){const w=plan?.nextStudyWindow;if(!w)return{status:'none',window:null};const e=w.earliest?new Date(w.earliest).getTime():null,l=w.latest?new Date(w.latest).getTime():null;if(e&&now<e)return{status:'early',window:w};if(l&&now>l)return{status:'late',window:w};return{status:'open',window:w};}
 function defaultStudyWindow(){const base=lastStudyAt()||Date.now();return{target:new Date(base+11*3600000).toISOString(),earliest:new Date(base+10*3600000).toISOString(),latest:new Date(base+13*3600000).toISOString(),reason:'Ventana provisional para un plan anterior a Pizarras 2.1; los planes nuevos deben traer una prescripción temporal explícita.'};}
 function windowSummary(plan){const w=plan?.nextStudyWindow;if(!w)return'';const target=w.target?fmtPlanDate(w.target):'';const e=w.earliest?fmtPlanTime(w.earliest):'',l=w.latest?fmtPlanTime(w.latest):'';return `${target?`objetivo ${target}`:''}${e||l?`${target?' · ':''}ventana ${e||'…'}–${l||'…'}`:''}`;}
+function planClassLabel(plan){const m=String(plan?.id||'').match(/class-(\d+)/i);return m?`CLASE ${Number(m[1])}`:'CLASE';}
+function taskerCalendarPayload(plan){
+  const w=plan?.nextStudyWindow;if(!w?.target)return null;const targetMs=new Date(w.target).getTime();if(Number.isNaN(targetMs))return null;
+  const minutes=clamp(Number(plan.durationMinutes)||8,5,20),delay=Math.max(1,Math.ceil((targetMs-Date.now())/60000)),label=planClassLabel(plan);
+  const title=`PIZARRAS · ${label} · ${minutes} MIN`,windowText=windowSummary(plan),lines=['Contrato Pizarras',`Plan: ${plan.title||label}`,windowText?`Horario: ${windowText}`:'',w.reason?`Motivo: ${w.reason}`:'',plan.id?`Plan ID: ${plan.id}`:''].filter(Boolean);
+  return{source:'pizarras',contractId:String(plan.id||''),delay,minutes,title,description:lines.join('\n'),target:w.target};
+}
+function taskerCalendarSignature(plan,payload){return `${String(plan?.id||'')}|${payload?.target||''}|${payload?.minutes||''}`;}
+function dispatchTaskerCalendar(plan){
+  if(!plan||!/Android/i.test(navigator.userAgent||''))return{status:'not-android'};const payload=taskerCalendarPayload(plan);if(!payload)return{status:'no-window'};
+  const sig=taskerCalendarSignature(plan,payload);if(state.calendarContracts?.[sig])return{status:'duplicate',payload};const body=JSON.stringify(payload);let queued=false,method='';
+  try{if(navigator.sendBeacon){queued=navigator.sendBeacon(TASKER_CONTRACT_URL,new Blob([body],{type:'text/plain;charset=UTF-8'}));if(queued)method='beacon';}}catch(e){}
+  if(!queued){try{fetch(TASKER_CONTRACT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=UTF-8'},body,keepalive:true,targetAddressSpace:'loopback'}).catch(()=>{});queued=true;method='fetch';}catch(e){}}
+  if(queued){state.calendarContracts[sig]={sentAt:Date.now(),target:payload.target,title:payload.title,method};save();return{status:'sent',payload,method};}
+  return{status:'failed',payload};
+}
 function readFirstDelayMs(text,mode='RECOGNITION'){const words=String(text||'').trim().split(/\s+/).filter(Boolean).length,base=Math.max(3000,Math.min(4800,3000+Math.max(0,words-8)*90));if(mode==='MEMORY')return Math.max(6500,base+1800);if(mode==='RECALL')return Math.max(5400,base+1100);return Math.round(base);}
 function syncReadFirstButton(){const b=$('readFirstToggle');if(!b)return;b.setAttribute('aria-pressed',readFirstMode?'true':'false');b.textContent=readFirstMode?'MODO · LEER PRIMERO · SÍ':'MODO · TODO JUNTO · NORMAL';}
 function toggleReadFirstMode(){readFirstMode=!readFirstMode;try{localStorage.setItem(READ_FIRST_KEY,readFirstMode?'1':'0');}catch(e){}syncReadFirstButton();}
@@ -200,7 +217,7 @@ async function copyCoachState(){const text=JSON.stringify(coachPayload(),null,2)
 function normalizePlan(x){const cats=[...new Set((x.focusCategories||[]).filter(c=>allBank().some(q=>q.category===c)))],ids=[...new Set((x.itemIds||[]).filter(id=>!!byId(id)))];return{schema:'PIZARRAS_SESSION_PLAN_V2',id:String(x.id||`plan-${Date.now()}`),title:String(x.title||'Sesión personalizada'),durationMinutes:clamp(Number(x.durationMinutes)||8,5,20),focusCategories:cats,itemIds:ids,nextStudyWindow:normalizeStudyWindow(x.nextStudyWindow)||(state.classSessions>0?defaultStudyWindow():null),notes:String(x.notes||''),createdAt:Date.now()};}
 function addCustomItems(items){let added=0;for(const raw of items||[]){const q={...raw,id:String(raw.id||''),category:String(raw.category||''),concept:String(raw.concept||''),prompt:String(raw.prompt||''),correct:String(raw.correct||''),options:Array.isArray(raw.options)?raw.options.map(String):[],explanation:String(raw.explanation||''),source:String(raw.source||'Pizarras 2.0 custom'),anchorId:raw.anchorId?String(raw.anchorId):null,recallPrompt:raw.recallPrompt?String(raw.recallPrompt):undefined};const anchored=(q.anchorId&&!!byId(q.anchorId))||/(sara|pizarras|plaud)/i.test(q.source);if(!validQuestion(q)||byId(q.id)||!anchored)continue;state.customItems.push(q);state.items[q.id]=freshItem();added++;}return added;}
 function applyJson(){
-  try{const x=JSON.parse($('jsonText').value);let added=0,plan=null;if(x.schema==='PIZARRAS_PACK_V2'){added=addCustomItems(x.items||x.newItems||[]);if(x.plan)plan=normalizePlan(x.plan);}else if(x.schema==='PIZARRAS_SESSION_PLAN_V2'){added=addCustomItems(x.newItems||[]);plan=normalizePlan(x);}else throw new Error('Schema no compatible');if(plan){state.pendingPlan=plan;state.awaitingCoachPlan=false;}save();const timing=plan?windowSummary(plan):'';$('jsonStatus').textContent=`JSON APLICADO · ${added} variaciones nuevas${plan?` · plan: ${plan.title} · ${plan.durationMinutes} min${timing?` · ${timing}`:''} · SIGUIENTE CLASE CONFIGURADA`:''}`;renderHome();}catch(e){$('jsonStatus').textContent='JSON NO VÁLIDO · usa PIZARRAS_SESSION_PLAN_V2 o PIZARRAS_PACK_V2.';}
+  try{const x=JSON.parse($('jsonText').value);let added=0,plan=null;if(x.schema==='PIZARRAS_PACK_V2'){added=addCustomItems(x.items||x.newItems||[]);if(x.plan)plan=normalizePlan(x.plan);}else if(x.schema==='PIZARRAS_SESSION_PLAN_V2'){added=addCustomItems(x.newItems||[]);plan=normalizePlan(x);}else throw new Error('Schema no compatible');if(plan){state.pendingPlan=plan;state.awaitingCoachPlan=false;}save();const timing=plan?windowSummary(plan):'',cal=plan?dispatchTaskerCalendar(plan):{status:'none'},calText=cal.status==='sent'?' · CALENDAR → TASKER ENVIADO':cal.status==='duplicate'?' · CALENDAR YA PROGRAMADO':cal.status==='not-android'?' · CALENDAR: SE PROGRAMARÁ EN ANDROID':cal.status==='no-window'?' · CALENDAR: SIN VENTANA HORARIA':cal.status==='failed'?' · CALENDAR: TASKER NO DISPONIBLE':'';$('jsonStatus').textContent=`JSON APLICADO · ${added} variaciones nuevas${plan?` · plan: ${plan.title} · ${plan.durationMinutes} min${timing?` · ${timing}`:''}${calText} · SIGUIENTE CLASE CONFIGURADA`:''}`;renderHome();}catch(e){$('jsonStatus').textContent='JSON NO VÁLIDO · usa PIZARRAS_SESSION_PLAN_V2 o PIZARRAS_PACK_V2.';}
 }
 function clearPlan(){state.pendingPlan=null;if(state.classSessions>0)state.awaitingCoachPlan=true;save();$('jsonStatus').textContent=state.awaitingCoachPlan?'Plan eliminado. La siguiente clase sigue bloqueada hasta recibir un nuevo plan de ChatGPT.':'Plan eliminado.';renderHome();}
 function openJson(){const rec=recommendedSession(),timing=windowSummary(state.pendingPlan);$('jsonStatus').textContent=state.pendingPlan?`PLAN ACTIVO · ${state.pendingPlan.title} · ${state.pendingPlan.durationMinutes} min${timing?` · ${timing}`:''}`:state.awaitingCoachPlan?'CLASE CERRADA · copia tu estado para ChatGPT y pega aquí el nuevo PIZARRAS_SESSION_PLAN_V2.':`Primera clase disponible · scheduler inicial: ${rec.minutes} min · ${rec.focus.join(' + ')}`;$('jsonText').value='';show('jsonScreen');}
@@ -210,5 +227,5 @@ function exportProgress(){const blob=new Blob([JSON.stringify({app:'pizarras',ve
 function importFile(file){if(!file)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);state=x.state||x;normalize();save();renderHome();}catch(e){alert('No se pudo importar este backup de Pizarras.');}};r.readAsText(file);}
 function reset(){if(!confirm('¿Resetear todo el progreso de Pizarras?'))return;localStorage.removeItem(STORAGE_KEY);load();renderHome();}
 
-load();renderHome();
+load();renderHome();setTimeout(()=>{if(state.pendingPlan)dispatchTaskerCalendar(state.pendingPlan);},650);
 $('startClassBtn').onclick=startStudy;$('quickBtn').onclick=startQuick;$('readFirstToggle').onclick=toggleReadFirstMode;$('statsBtn').onclick=()=>{renderStats();show('statsScreen');};$('statsBackBtn').onclick=goHome;$('jsonBtn').onclick=openJson;$('jsonBackBtn').onclick=goHome;$('copyStateBtn').onclick=copyCoachState;$('applyPlanBtn').onclick=applyJson;$('clearPlanBtn').onclick=clearPlan;$('continueBtn').onclick=()=>{if(session?.type==='study')openJson();else goHome();};$('copySessionBtn').onclick=copyLatestSession;$('homeBtn').onclick=goHome;$('abortBtn').onclick=abortSession;$('exportBtn').onclick=exportProgress;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>importFile(e.target.files[0]);$('resetBtn').onclick=reset;

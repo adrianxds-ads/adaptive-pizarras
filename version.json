@@ -1,14 +1,14 @@
 {
   "app": "Pizarras",
-  "version": "2.1.0",
-  "build": "2026-10-03",
+  "version": "2.1.1",
+  "build": "2026-10-04",
   "questions": 301,
   "sessionModel": "contract-mode adaptive timed study classes + quick quiz",
   "responseTimeLimit": 15,
   "recommendedClassRangeMinutes": "6-15 local / 5-20 external plan",
   "source": "Pizarras + Sarah Classes (Anki) + Plaud B2",
   "content": "Sara B2 study · fixed-duration contract classes · hidden global countdown · milestone cues · mandatory ChatGPT JSON handoff",
-  "workflow": "study class -> JSON -> ChatGPT plan + study window -> next contract class",
+  "workflow": "study class -> JSON -> ChatGPT plan + study window -> Tasker -> Google Calendar -> next contract class",
   "contractMode": {
     "classCountdownVisible": false,
     "milestones": [
@@ -18,5 +18,11 @@
     "durationFixedOnceStarted": true,
     "emergencyExit": true,
     "optionalStudyWindow": true
+  },
+  "calendarAutomation": {
+    "transport": "Tasker HTTP server on Android loopback",
+    "endpoint": "http://127.0.0.1:1821/",
+    "dispatch": "on plan apply and first Android load with pending unsent plan",
+    "duplicateProtection": true
   }
 }
