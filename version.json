@@ -1,6 +1,6 @@
 {
   "app": "Pizarras",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "build": "2026-10-03",
   "questions": 301,
   "sessionSize": 15,

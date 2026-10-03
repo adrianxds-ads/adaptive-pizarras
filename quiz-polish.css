@@ -1,0 +1,20 @@
+/* Català reference: 2x2 tiles, readable type, quiet question transitions. */
+#gameScreen #answers{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important}
+#gameScreen #answers .answer{box-sizing:border-box;min-width:0;min-height:154px!important;padding:18px 14px!important;border-radius:8px!important;font-family:Inter,Roboto,system-ui,-apple-system,"Segoe UI",sans-serif!important;font-size:20px!important;font-weight:950!important;line-height:1.12!important;letter-spacing:-.012em!important;white-space:normal!important;overflow-wrap:anywhere!important;text-wrap:balance!important;transition:none!important}
+#gameScreen .playfield{transform:none!important;min-height:0;padding-bottom:12px!important}
+#gameScreen .quiz-game-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none;min-height:48px;margin-top:auto;padding-top:10px}
+#gameScreen .quiz-game-footer .emergency-exit,#gameScreen .quiz-game-footer .exit{position:static!important;inset:auto!important;margin:0 0 0 auto!important;transform:none!important}
+#gameScreen #languagePointsHud,#gameScreen .quiz-game-footer #pointsHud{position:static!important;inset:auto!important;transform:none!important;width:auto!important;min-width:0!important;min-height:0!important;margin:0!important;padding:5px 8px!important;border:0!important;border-radius:7px!important;background:rgba(0,0,0,.14)!important;box-shadow:none!important;text-align:left!important;pointer-events:none;opacity:.7;transition:none!important}
+#gameScreen #languagePointsHud .lp-game-label,#gameScreen #languagePointsHud .lp-game-total,#gameScreen #languagePointsHud .lp-delta{display:none!important}
+#gameScreen #languagePointsHud .lp-game-main{display:flex;align-items:baseline;gap:4px}
+#gameScreen #languagePointsHud .lp-game-main b,#gameScreen #languagePointsHud .lp-game-main small,#gameScreen .quiz-game-footer #pointsHud{font-size:13px!important;line-height:1.2!important;font-weight:800!important}
+#gameScreen #feedback,#gameScreen #correctReveal,#gameScreen .memory-echo,#gameScreen .particles{display:none!important}
+body.feedback-correct::after,body.feedback-wrong::after{display:none!important}
+body.feedback-correct #gameScreen,body.feedback-wrong #gameScreen{animation:none!important;transform:none!important}
+@media(max-width:520px){#gameScreen #answers .answer{min-height:148px!important;padding:16px 10px!important;font-size:17px!important}#gameScreen .quiz-game-footer{padding-bottom:env(safe-area-inset-bottom)}}
+@media(max-width:520px) and (max-height:650px){#gameScreen #answers .answer{min-height:clamp(104px,20dvh,148px)!important;padding:12px 9px!important}#gameScreen .playfield{padding-top:8px!important}}
+
+/* Fit header badges and shorter mobile viewports without covering the tiles. */
+#gameScreen .leveltag .level-target{font-size:10px!important;line-height:1.2!important}
+@media(max-width:520px) and (max-height:650px){#gameScreen .question{padding:8px 10px!important}#gameScreen .question h2{font-size:20px!important}#gameScreen #questionText{gap:6px!important}#gameScreen #questionText .verb-prompt{font-size:32px!important}#gameScreen #questionText .tense-prompt{font-size:20px!important;padding:6px 9px!important}#gameScreen #questionText .person-prompt{font-size:17px!important}#gameScreen .quiz-game-footer{min-height:38px;padding-top:6px}}
+@media(max-width:520px) and (max-height:600px){#gameScreen{padding-top:8px!important;padding-bottom:10px!important}#gameScreen .top{min-height:80px!important}#gameScreen .qnum b{font-size:44px!important}#gameScreen #answers .answer{min-height:104px!important}}
