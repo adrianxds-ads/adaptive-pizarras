@@ -1,1 +1,10 @@
-{"app":"Pizarras","version":"0.1.1","build":"2026-10-03","questions":243,"sessionSize":15,"timeLimit":15,"source":"English · Pizarras · TRANSCRIPCIÓN MAESTRA"}
+{
+  "app": "Pizarras",
+  "version": "0.2.0",
+  "build": "2026-10-03",
+  "questions": 301,
+  "sessionSize": 15,
+  "timeLimit": 15,
+  "source": "Pizarras + Sarah Classes (Anki) + Plaud B2",
+  "content": "Sara B2 study · speaking, connectors, applied grammar"
+}
