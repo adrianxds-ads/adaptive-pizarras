@@ -23,3 +23,7 @@ PIZARRAS_STUDY_STATE_V2 exports the learning state, weak items, category evidenc
 The app accepts PIZARRAS_SESSION_PLAN_V2 and PIZARRAS_PACK_V2. A plan can set duration, focus categories, exact item IDs and new anchored variations. New items are validated before being stored and coexist with the fixed Sara bank.
 
 The former 15-question game remains available as QUIZ RÁPIDO for medals, short practice and comparison with the older model.
+
+## v2.0.1 · Coach gate
+
+Tras cada clase adaptativa, la siguiente queda bloqueada hasta aplicar un nuevo `PIZARRAS_SESSION_PLAN_V2` generado a partir del JSON de progreso. El Quiz rápido permanece independiente y no abre ni consume clases adaptativas.
