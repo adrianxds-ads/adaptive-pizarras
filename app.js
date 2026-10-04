@@ -1,9 +1,10 @@
-const APP_VERSION='2.1.1';
+const APP_VERSION='2.1.2';
 const STORAGE_KEY='pizarras_state_v1';
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
 const QUICK_SIZE=15;
 const TASKER_CONTRACT_URL='http://127.0.0.1:1821/';
+const TASKER_BRIDGE_REV='2';
 const BASE_BANK=window.PIZARRAS_BANK||[];
 const $=id=>document.getElementById(id);
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -63,7 +64,7 @@ function taskerCalendarPayload(plan){
   const title=`PIZARRAS · ${label} · ${minutes} MIN`,windowText=windowSummary(plan),lines=['Contrato Pizarras',`Plan: ${plan.title||label}`,windowText?`Horario: ${windowText}`:'',w.reason?`Motivo: ${w.reason}`:'',plan.id?`Plan ID: ${plan.id}`:''].filter(Boolean);
   return{source:'pizarras',contractId:String(plan.id||''),delay,minutes,title,description:lines.join('\n'),target:w.target};
 }
-function taskerCalendarSignature(plan,payload){return `${String(plan?.id||'')}|${payload?.target||''}|${payload?.minutes||''}`;}
+function taskerCalendarSignature(plan,payload){return `${TASKER_BRIDGE_REV}|${String(plan?.id||'')}|${payload?.target||''}|${payload?.minutes||''}`;}
 function dispatchTaskerCalendar(plan){
   if(!plan||!/Android/i.test(navigator.userAgent||''))return{status:'not-android'};const payload=taskerCalendarPayload(plan);if(!payload)return{status:'no-window'};
   const sig=taskerCalendarSignature(plan,payload);if(state.calendarContracts?.[sig])return{status:'duplicate',payload};const body=JSON.stringify(payload);let queued=false,method='';
