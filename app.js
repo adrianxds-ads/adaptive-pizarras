@@ -1,4 +1,4 @@
-const APP_VERSION='2.1.3';
+const APP_VERSION='2.1.4';
 const STORAGE_KEY='pizarras_state_v1';
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
@@ -33,8 +33,23 @@ function normalize(){
   if(!hadAwaitFlag)state.awaitingCoachPlan=state.classSessions>0&&!state.pendingPlan;
   if(state.pendingPlan){state.awaitingCoachPlan=false;if(state.classSessions>0&&!state.pendingPlan.nextStudyWindow)state.pendingPlan.nextStudyWindow=defaultStudyWindow();}
 }
-function load(){try{state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')||freshState();normalize();}catch(e){state=freshState();normalize();}}
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+function load(){try{
+  state=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')||freshState();
+  try{const backup=JSON.parse(sessionStorage.getItem(STORAGE_KEY+'_pending')||'null');if(backup&&Number(backup.answers)>=Number(state.answers)&&Number(backup.sessions)>=Number(state.sessions))state=backup;}catch(e){}
+  normalize();
+}catch(e){state=freshState();normalize();}}
+function save(){
+  if(session&&!session.finished)state.activeSession={...session,savedAt:Date.now()};
+  const value=JSON.stringify(state);
+  try{localStorage.setItem(STORAGE_KEY,value);try{sessionStorage.removeItem(STORAGE_KEY+'_pending');}catch(e){}}
+  catch(e){console.warn('Pizarras: fallo de guardado persistente',e);try{sessionStorage.setItem(STORAGE_KEY+'_pending',value);}catch(error){alert('No se puede guardar el progreso. Exporta una copia antes de cerrar esta pestaña.');}}
+}
+function resumeStudy(){
+  const saved=state.activeSession;if(!saved||saved.type!=='study'||saved.finished)return false;
+  session={...saved};const pause=Math.max(0,Date.now()-saved.savedAt);
+  session.startedAt+=pause;session.endsAt+=pause;activeFilter=session.filter||'Adaptive';
+  show('gameScreen');renderSegments();startClassClock();renderQuestion();return true;
+}
 function st(q){if(!state.items[q.id])state.items[q.id]=freshItem();return state.items[q.id];}
 function itemAccuracy(q){const m=st(q);return m.attempts?m.correct/m.attempts:0;}
 function mastery(q){const m=st(q);if(!m.attempts)return 0;const acc=itemAccuracy(q),exp=Math.min(1,m.attempts/8),avg=m.totalTime/Math.max(1,m.attempts),speed=clamp((TIME_LIMIT-avg)/TIME_LIMIT,0,1),recall=clamp((m.recallStage||0)/6,0,1),retention=clamp((m.intervalDays||0)/16,0,1);return Math.round((acc*.46+exp*.17+speed*.13+recall*.14+retention*.10)*100);}
@@ -105,6 +120,8 @@ function renderHome(){
   $('startLevel').textContent='Pizarras 2.1';$('startMeta').textContent=`${bank.length} ejercicios activos · ${BASE_BANK.length} anclados a Sara · ${state.customItems.length} variaciones añadidas`;
   if(waiting){$('recommendedClass').textContent='PENDIENTE';$('classFocus').textContent='Clase terminada · toca análisis con ChatGPT';$('classReason').textContent='Copia el JSON de la sesión, pásamelo en el chat y aplica el nuevo plan para desbloquear la siguiente clase.';}else{$('recommendedClass').textContent=`${rec.minutes} MIN`;$('classFocus').textContent=`Foco: ${rec.focus.map(x=>FILTER_LABELS[x]||x).join(' + ')||'repaso adaptativo'}`;const timing=windowSummary(state.pendingPlan);$('classReason').textContent=[rec.reason,timing].filter(Boolean).join(' · ');}
   $('startClassBtn').disabled=waiting||tooEarly;if(waiting)$('startClassBtn').textContent='SIGUIENTE CLASE · NECESITA PLAN JSON';else if(tooEarly)$('startClassBtn').textContent=`CONTRATO DISPONIBLE DESDE ${fmtPlanTime(win.window.earliest)}`;else $('startClassBtn').textContent=`EMPEZAR CONTRATO · ${rec.minutes} MIN`;
+  $('quickBtn').disabled=state.activeSession?.type==='study';
+  if(state.activeSession?.type==='study'){$('startClassBtn').disabled=false;$('startClassBtn').textContent='REANUDAR CLASE · PROGRESO GUARDADO';}
   $('coverageText').textContent=coverage()+'%';$('coverageFill').style.width=coverage()+'%';$('masteryText').textContent=globalMastery()+'%';$('masteryFill').style.width=globalMastery()+'%';$('startAccuracy').textContent=acc==null?'-':acc+'%';$('startAvg').textContent=avg==null?'-':avg.toFixed(1)+'s';$('startDue').textContent=dueCount();$('startMastered').textContent=bank.filter(mastered).length+'/'+bank.length;$('startStudy').textContent=fmtTime(state.studySec);$('startLeeches').textContent=leechCount();
   const ps=$('planStatus');if(state.pendingPlan){ps.classList.remove('hidden');ps.classList.add('plan-active');const timing=windowSummary(state.pendingPlan);const timingState=win.status==='early'?' · AÚN NO DISPONIBLE':win.status==='late'?' · FUERA DE VENTANA: HAZLA CUANTO ANTES':'';ps.textContent=`PLAN ACTIVO · ${state.pendingPlan.title||'Sesión personalizada'} · ${rec.minutes} min${state.pendingPlan.itemIds?.length?` · ${state.pendingPlan.itemIds.length} objetivos`:''}${timing?` · ${timing}`:''}${timingState}`;}else if(waiting){ps.classList.remove('hidden');ps.classList.add('plan-active');ps.textContent='PASO OBLIGATORIO · JSON → CHATGPT → NUEVO PLAN → PIZARRAS';}else{ps.classList.add('hidden');ps.classList.remove('plan-active');}
   renderFilters();syncReadFirstButton();renderPizarrasMedals();window.AdrianOca?.refresh?.();
@@ -139,14 +156,16 @@ function updateSegments(){const els=[...$('segments').children];if(!session||ses
 function flashClassMilestone(text,persist=false){const el=$('classClock');clearTimeout(milestoneHideHandle);el.textContent=text;el.classList.remove('hidden');if(!persist)milestoneHideHandle=setTimeout(()=>{if(session?.type==='study')el.classList.add('hidden');},2200);}
 function updateHud(){const study=session.type==='study';$('qMode').textContent=study?'CONTRACT':'QUICK';$('qIndex').textContent=session.questionCount+1;$('qTotal').textContent=study?'CLASS':'/ 15';$('pointsHud').textContent=session.points+' PTS';$('comboHud').textContent='COMBO ×'+session.combo;$('levelHud').textContent=study?'EN CURSO':`L${state.level}`;$('abortBtn').textContent=study?'INTERRUMPIR':'SALIR';if(!study){$('classClock').classList.add('hidden');$('classClock').textContent='';}}
 function startClassClock(){clearInterval(classHandle);clearTimeout(milestoneHideHandle);$('classClock').classList.add('hidden');if(session.type!=='study')return;updateClassClock();classHandle=setInterval(updateClassClock,250);}
-function updateClassClock(){if(!session||session.type!=='study')return;const elapsed=Date.now()-session.startedAt,total=session.durationSec*1000,left=Math.max(0,session.endsAt-Date.now()),p=total?clamp(elapsed/total,0,1):0;if(p>=.5&&!session.milestonesShown.half){session.milestonesShown.half=true;flashClassMilestone('MITAD DE LA CLASE');}if(p>=.85&&!session.milestonesShown.final){session.milestonesShown.final=true;flashClassMilestone('ÚLTIMO TRAMO');}if(left<=0&&!session.timeUp){session.timeUp=true;flashClassMilestone('CONTRATO CUMPLIDO',true);}}
+function updateClassClock(){if(!session||session.type!=='study')return;const elapsed=Date.now()-session.startedAt,total=session.durationSec*1000,left=Math.max(0,session.endsAt-Date.now()),p=total?clamp(elapsed/total,0,1):0;if(p>=.5&&!session.milestonesShown.half){session.milestonesShown.half=true;flashClassMilestone('MITAD DE LA CLASE');}if(p>=.85&&!session.milestonesShown.final){session.milestonesShown.final=true;flashClassMilestone('ÚLTIMO TRAMO');}if(left<=0&&!session.timeUp){session.timeUp=true;flashClassMilestone('CONTRATO CUMPLIDO',true);}if(left<=0&&locked&&session.answerCommitted&&session.questionCount>=session.minQuestions)finishSession(false);}
 function startAnswerTimer(){deadline=Date.now()+TIME_LIMIT*1000;tick();clearInterval(timerHandle);timerHandle=setInterval(tick,50);}
 function tick(){const left=Math.max(0,deadline-Date.now()),sec=left/1000,pct=left/(TIME_LIMIT*1000)*100;$('timerText').textContent=sec.toFixed(1);$('timer').style.setProperty('--p',pct+'%');$('timer').classList.toggle('urgent',sec<=3);if(left<=0){clearInterval(timerHandle);answer(null,null,true);}}
 function renderQuestion(){
-  clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;currentPreReadMs=0;locked=false;
+  if(!session||session.finished)return;
+  clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;currentPreReadMs=0;locked=false;session.answerCommitted=false;
   if(session.type==='quick'&&session.index>=session.queue.length)return finishSession(false);
   if(session.type==='study'&&session.timeUp&&session.questionCount>=session.minQuestions)return finishSession(false);
   current=session.type==='quick'?session.queue[session.index]:pickStudyQuestion();if(!current)return finishSession(false);
+  save();
   const mode=chooseRetrievalMode(current);session.currentMode=mode;const prompt=displayPrompt(current,mode);session.currentPrompt=prompt;
   $('categoryLine').innerHTML=`${current.category.toUpperCase()} · ${current.concept.toUpperCase()}${mode==='RECOGNITION'?'':`<br><span class="recall-badge">${mode==='MEMORY'?'MEMORY · DI LA FRASE ANTES DE VERLA':'RECALL · RESPONDE MENTALMENTE PRIMERO'}</span>`}`;$('questionText').textContent=prompt;$('feedback').innerHTML='';
   const opts=shuffle(current.options),host=$('answers');host.innerHTML='';host.classList.toggle('read-first-hidden',readFirstMode);opts.forEach((text,i)=>{const b=document.createElement('button');b.className='answer c'+i;b.textContent=text;b.disabled=readFirstMode;b.onclick=()=>answer(text,b,false);host.appendChild(b);});
@@ -162,31 +181,33 @@ function updateSpacing(q,ok,mode,elapsed){
   const table=[1,1,2,4,8,16,30];let interval=table[Math.min(stage,table.length-1)];if(elapsed>9)interval=Math.max(1,Math.round(interval*.7));m.intervalDays=interval;m.nextDueTs=now+interval*DAY;
 }
 function answer(text,button,timeout){
-  if(locked)return;locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;
+  if(locked||!session||session.finished)return;locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;
   const elapsed=clamp((TIME_LIMIT*1000-Math.max(0,deadline-Date.now()))/1000,0,TIME_LIMIT),ok=text===current.correct,m=st(current),mode=session.currentMode;
   m.attempts++;m.totalTime+=elapsed;state.answers++;let delta=-3;
   if(ok){m.correct++;m.streak++;state.correct++;session.correct++;session.combo++;session.bestCombo=Math.max(session.bestCombo,session.combo);delta=10+(elapsed<=5?2:0)+(mode!=='RECOGNITION'?3:0)+(session.combo===3?3:session.combo===5?5:session.combo===10?10:0);tone(880,.08,.018);}else{m.misses++;m.streak=0;session.combo=0;tone(220,.10,.018);session.errors.push({id:current.id,category:current.category,concept:current.concept,prompt:session.currentPrompt,shown:timeout?'TIME':text,correct:current.correct,explanation:current.explanation,mode});if(session.type==='study'&&!session.relearnQueue.some(x=>x.id===current.id))session.relearnQueue.push({id:current.id,at:session.questionCount+4});}
   updateSpacing(current,ok,mode,elapsed);session.points=Math.max(0,session.points+delta);state.points=Math.max(0,state.points+delta);session.times.push(elapsed);state.studySec+=(elapsed+currentPreReadMs/1000);session.questionCount++;session.recentIds.push(current.id);session.recentConcepts.push(current.concept);session.records.push({id:current.id,category:current.category,concept:current.concept,ok,time:+elapsed.toFixed(2),mode,preReadMs:currentPreReadMs,prompt:session.currentPrompt,answer:text||null,correct:current.correct,at:Date.now()});
-  state.answerHistory.push({at:Date.now(),id:current.id,category:current.category,concept:current.concept,ok,time:elapsed,mode,studyType:session.type,studyMode:readFirstMode?'READ_FIRST':'STANDARD',preReadMs:currentPreReadMs,prompt:session.currentPrompt,answer:text||null,correctAnswer:current.correct,explanation:current.explanation||''});state.answerHistory=state.answerHistory.slice(-3000);save();
+  state.answerHistory.push({at:Date.now(),id:current.id,category:current.category,concept:current.concept,ok,time:elapsed,mode,studyType:session.type,studyMode:readFirstMode?'READ_FIRST':'STANDARD',preReadMs:currentPreReadMs,prompt:session.currentPrompt,answer:text||null,correctAnswer:current.correct,explanation:current.explanation||''});session.answerCommitted=true;state.answerHistory=state.answerHistory.slice(-3000);if(session.type==='quick')session.index++;save();
+  if(session.type==='study'&&Date.now()>=session.endsAt&&session.questionCount>=session.minQuestions)return finishSession(false);
+  if(session.type==='quick'&&session.index>=session.queue.length)return finishSession(false);
   [...$('answers').children].forEach(b=>{b.disabled=true;if(b.textContent===current.correct)b.classList.add('good');else b.classList.add('dim');});if(button&&!ok){button.classList.remove('dim');button.classList.add('bad');}
   $('feedback').innerHTML=`<b>${ok?'CORRECT':timeout?'TIME':'NOT QUITE'} · ${delta>0?'+':''}${delta} PTS</b>${current.explanation||''}`;updateHud();
-  const expected=session,setIndex=session.index,setQuestionCount=session.questionCount;setTimeout(()=>{if(session!==expected||session.questionCount!==setQuestionCount)return;if(session.type==='quick')session.index++;if(session.type==='study'&&session.timeUp&&session.questionCount>=session.minQuestions)return finishSession(false);renderQuestion();},ok?170:340);
+  const expected=session,setIndex=session.index,setQuestionCount=session.questionCount;setTimeout(()=>{if(session!==expected||session.questionCount!==setQuestionCount)return;if(session.type==='study'&&session.timeUp&&session.questionCount>=session.minQuestions)return finishSession(false);renderQuestion();},ok?170:340);
 }
 function makeStudySession(){
   const rec=recommendedSession(),plan=state.pendingPlan;return{type:'study',startedAt:Date.now(),endsAt:Date.now()+rec.minutes*60000,durationSec:rec.minutes*60,minQuestions:8,questionCount:0,index:0,correct:0,points:0,combo:0,bestCombo:0,times:[],errors:[],records:[],recentIds:[],recentConcepts:[],relearnQueue:[],focusCategories:plan?.focusCategories?.length?plan.focusCategories:rec.focus,planItemIds:plan?.itemIds||[],planTitle:plan?.title||null,planId:plan?.id||null,timeUp:false,milestonesShown:{half:false,final:false}};
 }
-function startStudy(){if(state.awaitingCoachPlan&&!state.pendingPlan){openJson();$('jsonStatus').textContent='SIGUIENTE CLASE BLOQUEADA · copia tu estado para ChatGPT y aplica el nuevo PIZARRAS_SESSION_PLAN_V2.';return;}const win=planWindowState(state.pendingPlan);if(win.status==='early'){renderHome();$('planStatus').classList.remove('hidden');$('planStatus').textContent=`CONTRATO TODAVÍA CERRADO · disponible desde ${fmtPlanDate(win.window.earliest)}.`;return;}try{ensureAudio();}catch(e){}session=makeStudySession();show('gameScreen');renderSegments();startClassClock();renderQuestion();}
+function startStudy(){if(resumeStudy())return;if(state.awaitingCoachPlan&&!state.pendingPlan){openJson();$('jsonStatus').textContent='SIGUIENTE CLASE BLOQUEADA · copia tu estado para ChatGPT y aplica el nuevo PIZARRAS_SESSION_PLAN_V2.';return;}const win=planWindowState(state.pendingPlan);if(win.status==='early'){renderHome();$('planStatus').classList.remove('hidden');$('planStatus').textContent=`CONTRATO TODAVÍA CERRADO · disponible desde ${fmtPlanDate(win.window.earliest)}.`;return;}try{ensureAudio();}catch(e){}session=makeStudySession();save();show('gameScreen');renderSegments();startClassClock();renderQuestion();}
 function startQuick(){try{ensureAudio();}catch(e){}session={type:'quick',queue:buildQuickQueue(),index:0,questionCount:0,correct:0,points:0,combo:0,bestCombo:0,times:[],errors:[],records:[],recentIds:[],recentConcepts:[],relearnQueue:[],startedAt:Date.now()};show('gameScreen');renderSegments();renderQuestion();}
 function pizarrasMedalCounts(){const rows=(state.history||[]).filter(x=>x?.type==="quick"&&Number(x.questions)===15).map(r=>({correct:Number(r.correct)||0,total:15}));return window.AdrianAchievements?.countsFromHistory?.(rows)||{blue:0,violet:0,gold:0};}
 function renderPizarrasMedals(latest=null){const counts=pizarrasMedalCounts(),strip=window.AdrianAchievements?.medalStripHtml?.(counts,{context:"summary"})||"";if($("startMedals"))$("startMedals").innerHTML=strip;if(latest&&latest.type==="quick"&&Number(latest.questions)===15){const badge=window.AdrianAchievements?.badgeHtml?.(Number(latest.correct)||0,15,counts)||"";if(badge){$("endMedal").innerHTML=badge;window.AdrianAchievements?.play?.(null,Number(latest.correct)||0,15);}}}
 function medal(score){return score===15?['🥇','GOLD · 15/15']:score===14?['🟣','VIOLET · 14/15']:score===13?['🔵','BLUE · 13/15']:['',''];}
 function finishSession(early=false){
-  if(!session)return;clearInterval(timerHandle);clearInterval(classHandle);clearTimeout(revealHandle);clearTimeout(milestoneHideHandle);revealHandle=null;milestoneHideHandle=null;
+  if(!session||session.finished)return;session.finished=true;state.activeSession=null;clearInterval(timerHandle);clearInterval(classHandle);clearTimeout(revealHandle);clearTimeout(milestoneHideHandle);revealHandle=null;milestoneHideHandle=null;
   const completed=session,answered=completed.questionCount,acc=answered?completed.correct/answered:0,avg=mean(completed.times),elapsedSec=Math.max(1,(Date.now()-completed.startedAt)/1000),beforeMastered=0;
   for(const r of completed.records){const q=byId(r.id);if(q&&mastered(q))beforeMastered++;}const consolidated=new Set(completed.records.filter(r=>{const q=byId(r.id);return r.ok&&q&&(st(q).intervalDays||0)>=4;}).map(r=>r.id)).size;
   state.sessions++;state.level=state.sessions+1;if(completed.type==='study')state.classSessions++;else state.quickSessions++;
   const row={at:Date.now(),type:completed.type,durationSec:elapsedSec,plannedSec:completed.durationSec||null,early,questions:answered,correct:completed.correct,accuracy:acc,avgTime:avg,points:completed.points,bestCombo:completed.bestCombo,filter:activeFilter,focusCategories:completed.focusCategories||[],planId:completed.planId||null,planTitle:completed.planTitle||null,consolidated,errors:completed.errors.length};state.history.push(row);state.history=state.history.slice(-600);
-  if(completed.type==='study'&&state.pendingPlan){state.planHistory.push({id:state.pendingPlan.id||null,title:state.pendingPlan.title||'',completedAt:Date.now(),questions:answered,accuracy:acc});state.planHistory=state.planHistory.slice(-100);state.pendingPlan=null;}
+  if(completed.type==='study'&&state.pendingPlan&&state.pendingPlan.id===completed.planId){state.planHistory.push({id:state.pendingPlan.id||null,title:state.pendingPlan.title||'',completedAt:Date.now(),questions:answered,accuracy:acc});state.planHistory=state.planHistory.slice(-100);state.pendingPlan=null;}
   if(completed.type==='study')state.awaitingCoachPlan=true;
   save();try{window.HubPathGame?.resolve?.({appId:"pizarras",correct:completed.correct,total:Math.max(1,answered),bestCombo:completed.bestCombo||0,eventId:`pizarras:${row.at}:${completed.type}`});}catch(e){console.warn("Hub Oca unavailable",e);}renderEnd(row,completed);renderPizarrasMedals(row);show('endScreen');session=completed;
 }
