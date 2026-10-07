@@ -1,4 +1,4 @@
-const APP_VERSION='2.1.5';
+const APP_VERSION='2.1.6';
 const STORAGE_KEY='pizarras_state_v1';
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
