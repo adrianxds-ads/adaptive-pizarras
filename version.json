@@ -1,6 +1,6 @@
 {
   "app": "Pizarras",
-  "version": "2.1.9",
+  "version": "2.1.12",
   "build": "2026-10-08",
   "questions": 301,
   "sessionModel": "contract-mode adaptive timed study classes + quick quiz",
