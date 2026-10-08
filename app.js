@@ -1,4 +1,4 @@
-const APP_VERSION='2.1.9';
+const APP_VERSION='2.1.10';
 const STORAGE_KEY='pizarras_state_v1';
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
@@ -207,7 +207,7 @@ function finishSession(early=false){
   const completed=session,answered=completed.questionCount,acc=answered?completed.correct/answered:0,avg=mean(completed.times),elapsedSec=Math.max(1,(Date.now()-completed.startedAt)/1000),beforeMastered=0;
   for(const r of completed.records){const q=byId(r.id);if(q&&mastered(q))beforeMastered++;}const consolidated=new Set(completed.records.filter(r=>{const q=byId(r.id);return r.ok&&q&&(st(q).intervalDays||0)>=4;}).map(r=>r.id)).size;
   state.sessions++;state.level=state.sessions+1;if(completed.type==='study')state.classSessions++;else state.quickSessions++;
-  const row={at:Date.now(),type:completed.type,durationSec:elapsedSec,plannedSec:completed.durationSec||null,early,questions:answered,correct:completed.correct,accuracy:acc,avgTime:avg,points:completed.points,bestCombo:completed.bestCombo,filter:activeFilter,focusCategories:completed.focusCategories||[],planId:completed.planId||null,planTitle:completed.planTitle||null,consolidated,errors:completed.errors.length};state.history.push(row);state.history=state.history.slice(-600);
+  const row={learning:globalMastery(),at:Date.now(),type:completed.type,durationSec:elapsedSec,plannedSec:completed.durationSec||null,early,questions:answered,correct:completed.correct,accuracy:acc,avgTime:avg,points:completed.points,bestCombo:completed.bestCombo,filter:activeFilter,focusCategories:completed.focusCategories||[],planId:completed.planId||null,planTitle:completed.planTitle||null,consolidated,errors:completed.errors.length};state.history.push(row);state.history=state.history.slice(-600);
   if(completed.type==='study'&&state.pendingPlan&&state.pendingPlan.id===completed.planId){state.planHistory.push({id:state.pendingPlan.id||null,title:state.pendingPlan.title||'',completedAt:Date.now(),questions:answered,accuracy:acc});state.planHistory=state.planHistory.slice(-100);state.pendingPlan=null;}
   if(completed.type==='study')state.awaitingCoachPlan=true;
   save();try{window.HubPathGame?.resolve?.({appId:"pizarras",correct:completed.correct,total:Math.max(1,answered),bestCombo:completed.bestCombo||0,eventId:`pizarras:${row.at}:${completed.type}`});}catch(e){console.warn("Hub Oca unavailable",e);}renderEnd(row,completed);renderPizarrasMedals(row);show('endScreen');session=completed;
@@ -228,7 +228,7 @@ function weakItems(limit=16){return [...allBank()].sort((a,b)=>(dueNow(b)?1:0)-(
 function weakRows(){return weakItems().map(q=>`<div class="skill"><div class="name">${dueNow(q)?'⏱ ':''}${isLeech(q)?'⚠ ':''}${escapeHtml(q.concept)}</div><div class="track"><div class="fill" style="width:${mastery(q)}%"></div></div><div class="pct">${mastery(q)}%</div></div>`).join('');}
 function renderStats(){
   const avg=avgResponse();$('statsCoverage').textContent=coverage()+'%';$('statsMastery').textContent=globalMastery()+'%';$('statsAccuracy').textContent=(recentAccuracy()??0)+'%';$('statsDue').textContent=dueCount();$('statsClasses').textContent=state.classSessions;$('statsStudy').textContent=fmtTime(state.studySec);$('categoryStats').innerHTML=categoryRows();$('weakestStats').innerHTML=weakRows();
-  const h=state.history.filter(x=>x?.type==='study').slice(-20),host=$('historyBars');host.innerHTML=h.length?h.map(x=>`<i title="${Math.round((x.accuracy||0)*100)}% · ${x.questions||0} preguntas" style="height:${Math.max(4,(x.accuracy||0)*100)}%;background:${(x.accuracy||0)>=.85?'#e7bf57':'#8fd7b0'}"></i>`).join(''):'<div class="status">Completa una clase para iniciar la gráfica.</div>';
+  const h=state.history.filter(x=>x?.type==='study').slice(-20),host=$('historyBars');if(window.HubCharts){host.classList.remove('historybars');host.innerHTML=HubCharts.chart(h.map(x=>({at:x.at,value:15*x.accuracy})),{max:15,unit:' /15',title:'Resultados de las clases'});return;}host.innerHTML=h.length?h.map(x=>`<i title="${Math.round((x.accuracy||0)*100)}% · ${x.questions||0} preguntas" style="height:${Math.max(4,(x.accuracy||0)*100)}%;background:${(x.accuracy||0)>=.85?'#e7bf57':'#8fd7b0'}"></i>`).join(''):'<div class="status">Completa una clase para iniciar la gráfica.</div>';
 }
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
 
