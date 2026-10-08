@@ -1,4 +1,4 @@
-const APP_VERSION='2.1.10';
+const APP_VERSION='2.1.11';
 const STORAGE_KEY='pizarras_state_v1';
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
@@ -228,7 +228,7 @@ function weakItems(limit=16){return [...allBank()].sort((a,b)=>(dueNow(b)?1:0)-(
 function weakRows(){return weakItems().map(q=>`<div class="skill"><div class="name">${dueNow(q)?'⏱ ':''}${isLeech(q)?'⚠ ':''}${escapeHtml(q.concept)}</div><div class="track"><div class="fill" style="width:${mastery(q)}%"></div></div><div class="pct">${mastery(q)}%</div></div>`).join('');}
 function renderStats(){
   const avg=avgResponse();$('statsCoverage').textContent=coverage()+'%';$('statsMastery').textContent=globalMastery()+'%';$('statsAccuracy').textContent=(recentAccuracy()??0)+'%';$('statsDue').textContent=dueCount();$('statsClasses').textContent=state.classSessions;$('statsStudy').textContent=fmtTime(state.studySec);$('categoryStats').innerHTML=categoryRows();$('weakestStats').innerHTML=weakRows();
-  const h=state.history.filter(x=>x?.type==='study').slice(-20),host=$('historyBars');if(window.HubCharts){host.classList.remove('historybars');host.innerHTML=HubCharts.chart(h.map(x=>({at:x.at,value:15*x.accuracy})),{max:15,unit:' /15',title:'Resultados de las clases'});return;}host.innerHTML=h.length?h.map(x=>`<i title="${Math.round((x.accuracy||0)*100)}% · ${x.questions||0} preguntas" style="height:${Math.max(4,(x.accuracy||0)*100)}%;background:${(x.accuracy||0)>=.85?'#e7bf57':'#8fd7b0'}"></i>`).join(''):'<div class="status">Completa una clase para iniciar la gráfica.</div>';
+  const h=state.history.filter(x=>x?.type==='study'),host=$('historyBars');if(window.HubCharts){host.classList.remove('historybars');host.innerHTML=HubCharts.chart(h.map(x=>({at:x.at,value:15*x.accuracy})),{max:15,unit:' /15',title:'Resultados de las clases'});return;}host.innerHTML=h.length?h.map(x=>`<i title="${Math.round((x.accuracy||0)*100)}% · ${x.questions||0} preguntas" style="height:${Math.max(4,(x.accuracy||0)*100)}%;background:${(x.accuracy||0)>=.85?'#e7bf57':'#8fd7b0'}"></i>`).join(''):'<div class="status">Completa una clase para iniciar la gráfica.</div>';
 }
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
 
