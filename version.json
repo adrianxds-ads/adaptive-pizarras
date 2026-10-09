@@ -1,7 +1,7 @@
 {
   "app": "Pizarras",
-  "version": "2.1.14",
-  "build": "2026-10-08",
+  "version": "2.2.1",
+  "build": "2026-10-09-json-export",
   "questions": 301,
   "sessionModel": "contract-mode adaptive timed study classes + quick quiz",
   "responseTimeLimit": 15,
