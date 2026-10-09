@@ -1,4 +1,4 @@
-const APP_VERSION='2.1.13';
+const APP_VERSION='2.1.14';
 const STORAGE_KEY='pizarras_state_v1';
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
@@ -118,7 +118,7 @@ function poolForFilter(){const bank=allBank(),cats=FILTERS[activeFilter];if(acti
 function renderFilters(){const host=$('filters');host.innerHTML='';Object.keys(FILTERS).forEach(name=>{const b=document.createElement('button');b.className='chip'+(name===activeFilter?' active':'');b.textContent=FILTER_LABELS[name].toUpperCase();b.onclick=()=>{activeFilter=name;renderHome();};host.appendChild(b);});}
 function renderHome(){
   const rec=recommendedSession(),acc=recentAccuracy(),avg=avgResponse(),bank=allBank(),waiting=state.awaitingCoachPlan&&!state.pendingPlan,win=planWindowState(state.pendingPlan),tooEarly=win.status==='early';
-  $('startLevel').textContent='Pizarras 2.1';$('startMeta').textContent=`${bank.length} ejercicios activos · ${BASE_BANK.length} anclados a Sara · ${state.customItems.length} variaciones añadidas`;
+  $('startLevel').textContent='Classroom B2';$('startMeta').textContent=`${bank.length} ejercicios activos · ${BASE_BANK.length} anclados a Sara · ${state.customItems.length} variaciones añadidas`;
   if(waiting){$('recommendedClass').textContent='PENDIENTE';$('classFocus').textContent='Clase terminada · toca análisis con ChatGPT';$('classReason').textContent='Copia el JSON de la sesión, pásamelo en el chat y aplica el nuevo plan para desbloquear la siguiente clase.';}else{$('recommendedClass').textContent=`${rec.minutes} MIN`;$('classFocus').textContent=`Foco: ${rec.focus.map(x=>FILTER_LABELS[x]||x).join(' + ')||'repaso adaptativo'}`;const timing=windowSummary(state.pendingPlan);$('classReason').textContent=[rec.reason,timing].filter(Boolean).join(' · ');}
   $('startClassBtn').disabled=waiting||tooEarly;if(waiting)$('startClassBtn').textContent='SIGUIENTE CLASE · NECESITA PLAN JSON';else if(tooEarly)$('startClassBtn').textContent=`CONTRATO DISPONIBLE DESDE ${fmtPlanTime(win.window.earliest)}`;else $('startClassBtn').textContent=`EMPEZAR CONTRATO · ${rec.minutes} MIN`;
   $('quickBtn').disabled=state.activeSession?.type==='study';
