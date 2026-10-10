@@ -1,4 +1,4 @@
-const APP_VERSION='2.2.4';
+const APP_VERSION='2.2.5';
 const STORAGE_KEY='pizarras_state_v1';
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
@@ -14,6 +14,7 @@ const FILTERS={Adaptive:null,Speaking:['Speaking'],Connectors:['Connectors'],Gra
 const FILTER_LABELS={Adaptive:'Adaptativo',Speaking:'Speaking',Connectors:'Conectores',Grammar:'Gramática',Vocabulary:'Vocabulario',Phrasal:'Phrasal',Mixed:'Mixto'};
 let activeFilter='Adaptive';
 let state=null,session=null,current=null,timerHandle=null,classHandle=null,revealHandle=null,milestoneHideHandle=null,deadline=0,locked=false,audioCtx=null,currentPreReadMs=0;
+let revealEarlyOnTap=null;
 let readFirstMode=(()=>{try{return localStorage.getItem(READ_FIRST_KEY)!=='0';}catch(e){return true;}})();
 
 function validQuestion(q){return !!q&&typeof q.id==='string'&&typeof q.category==='string'&&typeof q.concept==='string'&&typeof q.prompt==='string'&&typeof q.correct==='string'&&Array.isArray(q.options)&&q.options.length===4&&new Set(q.options.map(x=>String(x).trim().toLowerCase())).size===4&&q.options.includes(q.correct);}
@@ -89,6 +90,14 @@ function dispatchTaskerCalendar(plan){
   if(queued){state.calendarContracts[sig]={sentAt:Date.now(),target:payload.target,title:payload.title,method};save();return{status:'sent',payload,method};}
   return{status:'failed',payload};
 }
+
+// During READ_FIRST, tapping the non-interactive game area reveals answers early.
+document.addEventListener('pointerdown', event=>{
+  if(!(revealEarlyOnTap && session && !session.finished && !locked))return;
+  if(event.target.closest('button,a,input,textarea,select,[role="button"],[contenteditable="true"]'))return;
+  if(event.cancelable)event.preventDefault();
+  const reveal=revealEarlyOnTap; reveal(); tone(880,.035,.008);
+},true);
 function readFirstDelayMs(text,mode='RECOGNITION'){const words=String(text||'').trim().split(/\s+/).filter(Boolean).length,base=Math.max(3000,Math.min(4800,3000+Math.max(0,words-8)*90));if(mode==='MEMORY')return Math.max(6500,base+1800);if(mode==='RECALL')return Math.max(5400,base+1100);return Math.round(base);}
 function syncReadFirstButton(){const b=$('readFirstToggle');if(!b)return;b.setAttribute('aria-pressed',readFirstMode?'true':'false');b.textContent=readFirstMode?'MODO · LEER PRIMERO · SÍ':'MODO · TODO JUNTO · NORMAL';}
 function toggleReadFirstMode(){readFirstMode=!readFirstMode;try{localStorage.setItem(READ_FIRST_KEY,readFirstMode?'1':'0');}catch(e){}syncReadFirstButton();}
@@ -182,7 +191,7 @@ function tick(){const left=Math.max(0,deadline-Date.now()),sec=left/1000,pct=lef
 function renderQuestion(){
   QuizLearning.clear();
   if(!session||session.finished)return;
-  clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;currentPreReadMs=0;locked=false;session.answerCommitted=false;
+  clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;currentPreReadMs=0;locked=false;session.answerCommitted=false;
   if(session.type==='quick'&&session.index>=session.queue.length)return finishSession(false);
   if(session.type==='study'&&session.timeUp&&session.questionCount>=session.minQuestions)return finishSession(false);
   current=session.type==='quick'?session.queue[session.index]:pickStudyQuestion();if(!current)return finishSession(false);
@@ -192,7 +201,18 @@ function renderQuestion(){
   const opts=shuffle(current.options),host=$('answers');host.innerHTML='';host.classList.toggle('read-first-hidden',readFirstMode);opts.forEach((text,i)=>{const b=document.createElement('button');b.className='answer c'+i;b.textContent=text;b.disabled=readFirstMode;b.onclick=()=>answer(text,b,false);host.appendChild(b);});
   if(session.type==='study'&&mode==='RECALL'&&String(current.correct).trim().split(/\s+/).length===1){const q={a:[current.correct],c:0,correctPos:0};session.currentMode='PRODUCTION';QuizLearning.production(q,host,pos=>answer(pos===0?current.correct:q.productionAnswer,null,false));}
   updateHud();$('timerText').textContent=TIME_LIMIT.toFixed(1);updateSegments(TIME_LIMIT);$('timer').style.setProperty('--p','100%');$('timer').classList.remove('urgent');
-  if(readFirstMode){currentPreReadMs=readFirstDelayMs(prompt,mode);const expectedSession=session,expectedQuestion=current;revealHandle=setTimeout(()=>{if(session!==expectedSession||current!==expectedQuestion||locked)return;host.classList.remove('read-first-hidden');[...host.children].forEach(b=>b.disabled=false);revealHandle=null;startAnswerTimer();},currentPreReadMs);}else{host.classList.remove('read-first-hidden');[...host.children].forEach(b=>b.disabled=false);startAnswerTimer();}
+  if(readFirstMode){
+     currentPreReadMs=readFirstDelayMs(prompt,mode);
+     const expectedSession=session,expectedQuestion=current,readingStartedAt=performance.now();
+     const revealChoices=()=>{
+       if(session!==expectedSession||current!==expectedQuestion||locked)return;
+       clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
+       currentPreReadMs=Math.round(performance.now()-readingStartedAt);
+       host.classList.remove('read-first-hidden');[...host.children].forEach(b=>b.disabled=false);
+       startAnswerTimer();
+     };
+     revealEarlyOnTap=revealChoices;revealHandle=setTimeout(revealChoices,currentPreReadMs);
+   }else{revealEarlyOnTap=null;host.classList.remove('read-first-hidden');[...host.children].forEach(b=>b.disabled=false);startAnswerTimer();}
 }
 function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}
 function tone(freq,dur=.07,gain=.015){try{ensureAudio();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=freq;o.type='sine';g.gain.value=gain;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);o.stop(audioCtx.currentTime+dur);}catch(e){}}
@@ -203,7 +223,7 @@ function updateSpacing(q,ok,mode,elapsed){
   const table=[1,1,2,4,8,16,30];let interval=table[Math.min(stage,table.length-1)];if(elapsed>9)interval=Math.max(1,Math.round(interval*.7));m.intervalDays=interval;m.nextDueTs=now+interval*DAY;
 }
 function answer(text,button,timeout){
-  if(locked||!session||session.finished)return;locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;
+  if(locked||!session||session.finished)return;locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
   const elapsed=clamp((TIME_LIMIT*1000-Math.max(0,deadline-Date.now()))/1000,0,TIME_LIMIT),ok=text===current.correct,m=st(current),mode=session.currentMode;
   m.attempts++;m.totalTime+=elapsed;state.answers++;let delta=-3;
   if(ok){m.correct++;m.streak++;state.correct++;session.correct++;session.combo++;session.bestCombo=Math.max(session.bestCombo,session.combo);delta=10+(elapsed<=5?2:0)+(mode!=='RECOGNITION'?3:0)+(session.combo===3?3:session.combo===5?5:session.combo===10?10:0);tone(880,.08,.018);}else{m.misses++;m.streak=0;session.combo=0;tone(220,.10,.018);session.errors.push({id:current.id,category:current.category,concept:current.concept,prompt:session.currentPrompt,shown:timeout?'TIME':text,correct:current.correct,explanation:current.explanation,mode});if(session.type==='study'&&!session.relearnQueue.some(x=>x.id===current.id))session.relearnQueue.push({id:current.id,at:session.questionCount+4});}
