@@ -18,3 +18,31 @@ body.feedback-correct #gameScreen,body.feedback-wrong #gameScreen{animation:none
 #gameScreen .leveltag .level-target{font-size:10px!important;line-height:1.2!important}
 @media(max-width:520px) and (max-height:650px){#gameScreen .question{padding:8px 10px!important}#gameScreen .question h2{font-size:20px!important}#gameScreen #questionText{gap:6px!important}#gameScreen #questionText .verb-prompt{font-size:32px!important}#gameScreen #questionText .tense-prompt{font-size:20px!important;padding:6px 9px!important}#gameScreen #questionText .person-prompt{font-size:17px!important}#gameScreen .quiz-game-footer{min-height:38px;padding-top:6px}}
 @media(max-width:520px) and (max-height:600px){#gameScreen{padding-top:8px!important;padding-bottom:10px!important}#gameScreen .top{min-height:80px!important}#gameScreen .qnum b{font-size:44px!important}#gameScreen #answers .answer{min-height:104px!important}}
+
+
+/* Nucleo Seconds v1: exactly one nonoverlapping division per second, filled left to right. */
+#gameScreen #segments.seconds-bar{
+  display:grid!important;
+  grid-auto-flow:row!important;
+  grid-template-rows:minmax(7px,7px)!important;
+  grid-auto-rows:7px!important;
+  align-items:center!important;
+  width:100%!important;
+  max-width:100%!important;
+  gap:clamp(2px,.65vw,5px)!important;
+  padding:0!important;
+  overflow:hidden!important;
+  isolation:isolate;
+}
+#gameScreen #segments.seconds-bar .seg{
+  display:block!important;box-sizing:border-box!important;position:static!important;
+  grid-row:1!important;min-width:0!important;width:100%!important;height:7px!important;
+  border:1px solid rgba(45,65,79,.24)!important;border-radius:3px!important;
+  background:rgba(93,116,133,.24)!important;box-shadow:none!important;
+  opacity:1!important;transform:none!important;animation:none!important;transition:none!important;
+}
+#gameScreen #segments.seconds-bar .seg.on{
+  background:#c89419!important;border-color:#9c6e0b!important;box-shadow:none!important;
+}
+#gameScreen #segments.seconds-bar .seg::before,
+#gameScreen #segments.seconds-bar .seg::after{display:none!important;content:none!important}
