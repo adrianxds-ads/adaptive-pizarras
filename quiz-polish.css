@@ -46,3 +46,15 @@ body.feedback-correct #gameScreen,body.feedback-wrong #gameScreen{animation:none
 }
 #gameScreen #segments.seconds-bar .seg::before,
 #gameScreen #segments.seconds-bar .seg::after{display:none!important;content:none!important}
+
+/* Núcleo Visual: keep timer digits visible on the luminous background. */
+#gameScreen #timer.timer::before{background:#F8FAFC!important}
+#gameScreen #timer.timer strong,
+#gameScreen #timerText{color:#243D50!important;font-size:22px!important;font-variant-numeric:tabular-nums}
+#gameScreen .qnum #qMode,#gameScreen .qnum #qTotal,
+#gameScreen .hudright #comboHud,#gameScreen .hudright #levelHud{
+ color:#29475B!important;font-size:15px!important;line-height:1.28!important
+}
+#gameScreen #categoryLine{color:#334D60!important;font-size:16px!important}
+@media(max-width:520px){#gameScreen .toprow{grid-template-columns:75px minmax(0,1fr) 103px;gap:6px}
+#gameScreen #timer.timer{width:68px;height:68px}}
