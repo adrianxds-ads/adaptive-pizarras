@@ -1,4 +1,4 @@
-const APP_VERSION='3.0.8';
+const APP_VERSION='3.0.9';
 const STORAGE_KEY='classroom_b2_state_v3'; // The previous course stays saved separately.
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
