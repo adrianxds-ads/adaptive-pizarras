@@ -1,0 +1,10 @@
+const fs=require('fs'),crypto=require('crypto');
+const file='build-assets.js';
+const text=fs.readFileSync(file,'utf8');
+const data=JSON.parse(text.replace(/^self\.AdrianRelease=/,'').replace(/;\s*$/,''));
+const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
+const names=['app.js','index.html','service-worker.js','version.json','curriculum-v3.js','rotation-v3.js'];
+for(const name of names)data.assets['/adaptive-pizarras/'+name]=sha(fs.readFileSync(name));
+data.build=sha('classroom-v3-'+data.assets['/adaptive-pizarras/app.js']).slice(0,16);
+fs.writeFileSync(file,'self.AdrianRelease='+JSON.stringify(data)+';\n');
+console.log('Release integrity updated:',data.build,names.length+' files');

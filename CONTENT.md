@@ -1,29 +1,11 @@
-# Pizarras 2.0 · Study Engine
+# Classroom B2 · currículo v3 (11/10/2026)
 
-Pizarras 2.0 keeps the fixed Sara/Pizarras source bank as the curriculum anchor and changes the primary learning unit from a 15-question level to a timed adaptive study class.
+El nuevo ciclo empieza en CLASE 1 con una clave de progreso nueva: `classroom_b2_state_v3`. El historial del ciclo anterior permanece guardado localmente bajo `pizarras_state_v1`. El banco anterior completo sigue en `questions.js`.
 
-The canonical bank remains 301 questions: 66 Speaking, 22 Connectors, 76 Grammar, 65 Vocabulary, 28 Phrasal verbs, 13 Corrections and 31 Word formation. Existing question IDs and the original storage key are preserved, so previous progress migrates forward.
+El contenido combina 12 clases temáticas con 144 preguntas originales para este nuevo ciclo y 269 preguntas seleccionadas del banco previo. Se han reducido los bloques mecánicos de `do vs make`, conservando los temas de Sara/Pizarras. Las clases tienen variedad de gramática, vocabulario, conversación, conectores, formación de palabras y phrasals.
 
-## Main study mode
+El algoritmo da prioridad a preguntas nuevas y a la diversidad de conceptos y respuestas; evita reponer un acierto dentro de la misma clase y limita a una sola repetición los errores, siempre después de otras doce preguntas como mínimo. Los planes JSON externos son opcionales y actúan como orientación, sin restringir toda la clase a unos pocos IDs.
 
-The default mode is CLASE ADAPTATIVA. The app recommends the duration itself, normally 6–15 minutes, using due reviews, leeches, recent accuracy and time since the previous study class. An imported ChatGPT plan can set 5–20 minutes.
+La escritura queda reservada a respuestas de dos o tres letras que corresponden a partículas de phrasal verbs. Se mantienen la lectura previa, el temporizador de 15 segundos, la exportación JSON, las medallas y el modo de clases temporizadas.
 
-The class does not end after 15 questions. Questions continue until the class timer expires; the current question is always allowed to finish. The scheduler prioritises due, weak, failed and unseen items, avoids immediate repetition, and deliberately reintroduces failed items later in the same class.
-
-Retrieval progresses through RECOGNITION, RECALL and MEMORY. Speaking items are preferentially moved toward MEMORY once enough evidence exists. READ FIRST remains enabled by default; response-time metrics begin only when answer options appear.
-
-## Spaced learning
-
-Each item now stores last correctness, lapses, recall stage, interval and next due time. Correct retrievals increase the review interval; errors shorten it and trigger relearning inside the current class.
-
-## JSON bridge
-
-PIZARRAS_STUDY_STATE_V2 exports the learning state, weak items, category evidence, due reviews, recent errors and the locally recommended next class.
-
-The app accepts PIZARRAS_SESSION_PLAN_V2 and PIZARRAS_PACK_V2. A plan can set duration, focus categories, exact item IDs and new anchored variations. New items are validated before being stored and coexist with the fixed Sara bank.
-
-The former 15-question game remains available as QUIZ RÁPIDO for medals, short practice and comparison with the older model.
-
-## v2.0.1 · Coach gate
-
-Tras cada clase adaptativa, la siguiente queda bloqueada hasta aplicar un nuevo `PIZARRAS_SESSION_PLAN_V2` generado a partir del JSON de progreso. El Quiz rápido permanece independiente y no abre ni consume clases adaptativas.
+Pruebas: `node tests/curriculum-v3.cjs` y `node tests/session-recovery.cjs`.

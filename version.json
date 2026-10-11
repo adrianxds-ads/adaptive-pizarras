@@ -1,14 +1,17 @@
 {
   "app": "Pizarras",
-  "version": "2.2.4",
-  "build": "2026-10-09-json-export",
-  "questions": 301,
-  "sessionModel": "contract-mode adaptive timed study classes + quick quiz",
+  "version": "3.0.0",
+  "build": "2026-10-11-curriculum-rotation",
+  "questions": 413,
+  "sessionModel": "12 thematic lessons + novelty-first balanced rotation + quick quiz",
   "responseTimeLimit": 15,
+  "storageKey": "classroom_b2_state_v3",
+  "previousStorageKeyKept": "pizarras_state_v1",
+  "coachRequired": false,
   "recommendedClassRangeMinutes": "6-15 local / 5-20 external plan",
   "source": "Pizarras + Sarah Classes (Anki) + Plaud B2",
-  "content": "Sara B2 study · fixed-duration contract classes · hidden global countdown · milestone cues · mandatory ChatGPT JSON handoff",
-  "workflow": "study class -> JSON -> ChatGPT plan + study window -> Tasker -> Google Calendar -> next contract class",
+  "content": "144 new B2 questions + 269 original selected questions · phrasal particle micro-writing",
+  "workflow": "class 1 onward; optional JSON / ChatGPT plan and calendar windows",
   "contractMode": {
     "classCountdownVisible": false,
     "milestones": [
