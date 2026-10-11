@@ -1,7 +1,7 @@
 {
   "app": "Pizarras",
-  "version": "3.0.0",
-  "build": "2026-10-11-curriculum-rotation",
+  "version": "3.0.1",
+  "build": "2026-10-11-curriculum-json-v3",
   "questions": 413,
   "sessionModel": "12 thematic lessons + novelty-first balanced rotation + quick quiz",
   "responseTimeLimit": 15,

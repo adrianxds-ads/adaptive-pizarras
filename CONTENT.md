@@ -6,6 +6,6 @@ El contenido combina 12 clases temáticas con 144 preguntas originales para este
 
 El algoritmo da prioridad a preguntas nuevas y a la diversidad de conceptos y respuestas; evita reponer un acierto dentro de la misma clase y limita a una sola repetición los errores, siempre después de otras doce preguntas como mínimo. Los planes JSON externos son opcionales y actúan como orientación, sin restringir toda la clase a unos pocos IDs.
 
-La escritura queda reservada a respuestas de dos o tres letras que corresponden a partículas de phrasal verbs. Se mantienen la lectura previa, el temporizador de 15 segundos, la exportación JSON, las medallas y el modo de clases temporizadas.
+La escritura queda reservada a respuestas de dos o tres letras que corresponden a partículas de phrasal verbs. El adaptador JSON de Classroom usa exclusivamente la nueva clave v3; el histórico del ciclo anterior sigue disponible por separado. Se mantienen la lectura previa, el temporizador de 15 segundos, la exportación JSON, las medallas y el modo de clases temporizadas.
 
 Pruebas: `node tests/curriculum-v3.cjs` y `node tests/session-recovery.cjs`.

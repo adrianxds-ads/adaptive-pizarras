@@ -4,6 +4,7 @@ const sandbox={window:{}};
 for(const file of ['questions.js','curriculum-v3.js','rotation-v3.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),sandbox,{filename:file});
 const modern=sandbox.window.CLASSROOM_V3_BANK,legacy=sandbox.window.PIZARRAS_BANK;
 const lessons=sandbox.window.CLASSROOM_V3_LESSONS,policy=sandbox.window.ClassroomRotation;
+assert(fs.readFileSync('learning-json-v3.js','utf8').includes("pizarras:'classroom_b2_state_v3'"),'JSON exporter must use v3 state');
 assert.equal(modern.length,144);
 assert.equal(lessons.length,12);
 assert(lessons.every(l=>l.questions===12));
