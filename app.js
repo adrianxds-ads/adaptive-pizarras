@@ -1,4 +1,4 @@
-const APP_VERSION='3.0.1';
+const APP_VERSION='3.0.2';
 const STORAGE_KEY='classroom_b2_state_v3'; // The previous course stays saved separately.
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
@@ -169,7 +169,7 @@ const NucleoReadFirstSkip=(()=>{
     get button(){return button;}
   };
 })();
-function readFirstDelayMs(text,mode='RECOGNITION'){return 60000;}
+function readFirstDelayMs(text,mode='RECOGNITION'){const words=String(text||'').trim().split(/\s+/).filter(Boolean).length,base=Math.max(3000,Math.min(4800,3000+Math.max(0,words-8)*90));if(mode==='MEMORY')return Math.max(6500,base+1800);if(mode==='RECALL')return Math.max(5400,base+1100);return Math.round(base);}
 function syncReadFirstButton(){const b=$('readFirstToggle');if(!b)return;b.setAttribute('aria-pressed',readFirstMode?'true':'false');b.textContent=readFirstMode?'MODO · LEER PRIMERO · SÍ':'MODO · TODO JUNTO · NORMAL';}
 function toggleReadFirstMode(){readFirstMode=!readFirstMode;try{localStorage.setItem(READ_FIRST_KEY,readFirstMode?'1':'0');}catch(e){}syncReadFirstButton();}
 
@@ -285,7 +285,7 @@ function renderQuestion(){
   }
   updateHud();$('timerText').textContent=TIME_LIMIT.toFixed(1);updateSegments(TIME_LIMIT);$('timer').style.setProperty('--p','100%');$('timer').classList.remove('urgent');
   if(readFirstMode){
-     currentPreReadMs=readFirstDelayMs(prompt,mode);
+     currentPreReadMs=readFirstDelayMs(prompt,mode);host.dataset.nucleoReadSeconds=String(currentPreReadMs/1000);window.NucleoQuizBars?.refresh?.();
      const expectedSession=session,expectedQuestion=current,readingStartedAt=performance.now();
      const revealChoices=()=>{
        if(session!==expectedSession||current!==expectedQuestion||locked)return;
