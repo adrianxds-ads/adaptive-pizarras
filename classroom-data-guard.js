@@ -180,6 +180,7 @@ async function latest(){
  }finally{db.close();}
 }
 async function snapshot(reason){
+ await window.ClassroomProgress.flush();
  const previousRaw=localStorage.getItem(KEY),previousPending=sessionStorage.getItem(PENDING);
  const previousRead=localStorage.getItem(PREF),previousArchive=await readArchive();
  const record={id:Date.now()+"-"+Math.random().toString(36).slice(2),
@@ -204,6 +205,7 @@ async function restoreStorage(record,previous){
  else sessionStorage.setItem(PENDING,record.previousPending);
  if(record.previousRead===null)localStorage.removeItem(PREF);
  else localStorage.setItem(PREF,record.previousRead);
+ await window.ClassroomProgress.flush();
  if(localStorage.getItem(KEY)!==record.previousRaw||
     sessionStorage.getItem(PENDING)!==record.previousPending||
     localStorage.getItem(PREF)!==record.previousRead)throw Error("No se verificó la recuperación anterior.");
@@ -283,6 +285,7 @@ async function applyCandidate(prepared){
    normalize();
    const encoded=JSON.stringify(state);
    localStorage.setItem(KEY,encoded);
+   await window.ClassroomProgress.flush();
    if(localStorage.getItem(KEY)!==encoded)throw Error("No se pudo verificar la escritura del progreso.");
    sessionStorage.removeItem(PENDING);
    if(sessionStorage.getItem(PENDING)!==null)throw Error("No se pudo limpiar el estado temporal.");
@@ -341,6 +344,7 @@ async function safeReset(){
    const oldMemory=clone(state),journal=await snapshot("reset");
    try{
      localStorage.removeItem(KEY);
+     await window.ClassroomProgress.flush();
      if(localStorage.getItem(KEY)!==null)throw Error("No se pudo eliminar el estado.");
      sessionStorage.removeItem(PENDING);
      await archiveChange([],true);
