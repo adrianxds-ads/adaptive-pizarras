@@ -4,6 +4,7 @@
 const KEY='classroom_b2_state_v3',DB='adrian-classroom-progress-v1',STORE='states';
 const proto=Storage.prototype,rawGet=proto.getItem,rawSet=proto.setItem,rawRemove=proto.removeItem;
 const channel='BroadcastChannel'in window?new BroadcastChannel(DB):null;
+let replacing=false;
 let db,value=null,revision=0,queue=Promise.resolve(),failure=null,pending=0,ready=false;
 const notice=document.createElement('div');
 notice.id='classroomPersistenceStatus';notice.setAttribute('role','status');
@@ -42,6 +43,11 @@ async function commit(next,reason){
 function schedule(next,reason){
  if(failure)throw failure;
  if(next!==null)valid(next);
+ if(!replacing&&value!==null){
+  if(next===null)throw Error('El borrado necesita una operación con copia de recuperación');
+  const before=valid(value),after=valid(next);
+  if(['answers','correct','sessions','classSessions','quickSessions'].some(k=>after[k]<before[k]))throw Error('Se ha rechazado un estado con menos progreso; usa la importación con copia si deseas restaurarlo');
+ }
  value=next;pending++;display();
  queue=queue.then(()=>{if(failure)throw failure;return commit(next,reason);}).catch(e=>{failure=e;}).finally(()=>{pending--;display();});
 }
@@ -72,7 +78,7 @@ async function start(){
  // Archive and verify before freeing only the redundant v3 key, never the legacy key.
  if(local!==null){if(row.raw!==local)throw Error('Copia local no verificada');rawRemove.call(localStorage,KEY);}
  install();
- window.ClassroomProgress=Object.freeze({flush,getItem:()=>value,inspect:()=>({revision,pending,error:failure?.message||null,ready}),database:DB});
+ window.ClassroomProgress=Object.freeze({flush,getItem:()=>value,inspect:()=>({revision,pending,error:failure?.message||null,ready}),replace:raw=>{replacing=true;try{if(raw===null)localStorage.removeItem(KEY);else localStorage.setItem(KEY,raw);}finally{replacing=false;}},database:DB});
  ready=true;display();
 }
 window.ClassroomProgressReady=start().catch(e=>{failure=e;display();throw e;});

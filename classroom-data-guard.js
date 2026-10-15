@@ -199,8 +199,7 @@ async function deleteSnapshot(id){
  const db=await openDb();try{await transact(db,"readwrite",s=>s.delete(id));}finally{db.close();}
 }
 async function restoreStorage(record,previous){
- if(record.previousRaw===null)localStorage.removeItem(KEY);
- else localStorage.setItem(KEY,record.previousRaw);
+ window.ClassroomProgress.replace(record.previousRaw);
  if(record.previousPending===null)sessionStorage.removeItem(PENDING);
  else sessionStorage.setItem(PENDING,record.previousPending);
  if(record.previousRead===null)localStorage.removeItem(PREF);
@@ -284,7 +283,7 @@ async function applyCandidate(prepared){
    state=clone(prepared.candidate);
    normalize();
    const encoded=JSON.stringify(state);
-   localStorage.setItem(KEY,encoded);
+   window.ClassroomProgress.replace(encoded);
    await window.ClassroomProgress.flush();
    if(localStorage.getItem(KEY)!==encoded)throw Error("No se pudo verificar la escritura del progreso.");
    sessionStorage.removeItem(PENDING);
@@ -343,7 +342,7 @@ async function safeReset(){
    if(!confirm("Segunda confirmación: ¿eliminar el progreso actual de esta copia aislada?"))return;
    const oldMemory=clone(state),journal=await snapshot("reset");
    try{
-     localStorage.removeItem(KEY);
+     window.ClassroomProgress.replace(null);
      await window.ClassroomProgress.flush();
      if(localStorage.getItem(KEY)!==null)throw Error("No se pudo eliminar el estado.");
      sessionStorage.removeItem(PENDING);
