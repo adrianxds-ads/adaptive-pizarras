@@ -1,4 +1,5 @@
-const APP_VERSION='3.0.15';
+const APP_VERSION='3.0.16';
+const quizFlow=new window.QuizFlowController();
 const STORAGE_KEY='classroom_b2_state_v3'; // The previous course stays saved separately.
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
@@ -261,10 +262,11 @@ function updateSegments(left=TIME_LIMIT,total=TIME_LIMIT){
 function flashClassMilestone(text,persist=false){const el=$('classClock');clearTimeout(milestoneHideHandle);el.textContent=text;el.classList.remove('hidden');if(!persist)milestoneHideHandle=setTimeout(()=>{if(session?.type==='study')el.classList.add('hidden');},2200);}
 function updateHud(){const study=session.type==='study';$('qMode').textContent=study?'CONTRACT':'QUICK';$('qIndex').textContent=session.questionCount+1;$('qTotal').textContent=study?'CLASS':'/ 15';$('pointsHud').textContent=session.points+' PTS';$('comboHud').textContent='COMBO ×'+session.combo;$('levelHud').textContent=study?'EN CURSO':`L${state.level}`;$('abortBtn').textContent=study?'INTERRUMPIR':'SALIR';if(!study){$('classClock').classList.add('hidden');$('classClock').textContent='';}}
 function startClassClock(){clearInterval(classHandle);clearTimeout(milestoneHideHandle);$('classClock').classList.add('hidden');if(session.type!=='study')return;updateClassClock();classHandle=setInterval(updateClassClock,250);}
-function updateClassClock(){if(!session||session.type!=='study'||session.finished)return;const elapsed=Date.now()-session.startedAt,total=session.durationSec*1000,left=Math.max(0,session.endsAt-Date.now()),p=total?clamp(elapsed/total,0,1):0;if(p>=.5&&!session.milestonesShown.half){session.milestonesShown.half=true;flashClassMilestone('MITAD DE LA CLASE');}if(p>=.85&&!session.milestonesShown.final){session.milestonesShown.final=true;flashClassMilestone('ÚLTIMO TRAMO');}if(left<=0&&!session.timeUp){session.timeUp=true;flashClassMilestone('CONTRATO CUMPLIDO',true);save();}if(left<=0&&session.questionCount>=session.minQuestions)return finishSession(false);}
-function startAnswerTimer(){deadline=Date.now()+TIME_LIMIT*1000;tick();clearInterval(timerHandle);timerHandle=setInterval(tick,50);}
+function updateClassClock(){if(!session||session.type!=='study'||session.finished)return;const elapsed=Date.now()-session.startedAt,total=session.durationSec*1000,left=Math.max(0,session.endsAt-Date.now()),p=total?clamp(elapsed/total,0,1):0;if(p>=.5&&!session.milestonesShown.half){session.milestonesShown.half=true;flashClassMilestone('MITAD DE LA CLASE');}if(p>=.85&&!session.milestonesShown.final){session.milestonesShown.final=true;flashClassMilestone('ÚLTIMO TRAMO');}if(left<=0&&!session.timeUp){session.timeUp=true;flashClassMilestone('CONTRATO CUMPLIDO',true);save();}if(left<=0&&session.questionCount>=session.minQuestions&&!locked)return finishSession(false);}
+function startAnswerTimer(){deadline=Date.now()+TIME_LIMIT*1000;tick();clearInterval(timerHandle);timerHandle=guardedQuizInterval(tick,50);}
 function tick(){const left=Math.max(0,deadline-Date.now()),sec=left/1000,pct=left/(TIME_LIMIT*1000)*100;$('timerText').textContent=sec.toFixed(1);updateSegments(sec);$('timer').style.setProperty('--p',pct+'%');$('timer').classList.toggle('urgent',sec<=3);if(left<=0){clearInterval(timerHandle);answer(null,null,true);}}
 function renderQuestion(){
+  quizFlow.begin();
   QuizLearning.clear();
   if(!session||session.finished)return;
   clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;NucleoReadFirstSkip.hide();currentPreReadMs=0;locked=false;session.answerCommitted=false;
@@ -306,7 +308,7 @@ function updateSpacing(q,ok,mode,elapsed){
   const table=[1,1,2,4,8,16,30];let interval=table[Math.min(stage,table.length-1)];if(elapsed>9)interval=Math.max(1,Math.round(interval*.7));m.intervalDays=interval;m.nextDueTs=now+interval*DAY;
 }
 function answer(text,button,timeout){
-  if(locked||!session||session.finished)return;locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
+  if(locked||!session||session.finished||$('answers').classList.contains('read-first-hidden'))return;locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
   const elapsed=clamp((TIME_LIMIT*1000-Math.max(0,deadline-Date.now()))/1000,0,TIME_LIMIT),ok=text===current.correct,m=st(current),mode=session.currentMode;
   m.attempts++;m.totalTime+=elapsed;state.answers++;let delta=-3;
   if(ok){m.correct++;m.streak++;state.correct++;session.correct++;session.combo++;session.bestCombo=Math.max(session.bestCombo,session.combo);delta=10+(elapsed<=5?2:0)+(mode!=='RECOGNITION'?3:0)+(session.combo===3?3:session.combo===5?5:session.combo===10?10:0);tone(880,.08,.018);}else{m.misses++;m.streak=0;session.combo=0;tone(220,.10,.018);session.errors.push({id:current.id,category:current.category,concept:current.concept,prompt:session.currentPrompt,shown:timeout?'TIME':text,correct:current.correct,explanation:current.explanation,mode});if(session.type==='study'&&!session.relearnQueue.some(x=>x.id===current.id)&&!(session.retriedIds||[]).includes(current.id))session.relearnQueue.push({id:current.id,at:session.questionCount+12});}
@@ -319,12 +321,15 @@ function answer(text,button,timeout){
   QuizLearning.show('#questionText',session.currentPrompt,current.correct);
   [...$('answers').querySelectorAll('button.answer')].forEach(b=>{b.disabled=true;if(b.textContent===current.correct)b.classList.add('good');else b.classList.add('dim');});if(button&&!ok){button.classList.remove('dim');button.classList.add('bad');}
   $('feedback').innerHTML=`<b>${ok?'CORRECT':timeout?'TIME':'NOT QUITE'} · ${delta>0?'+':''}${delta} PTS</b>${current.explanation||''}`;updateHud();
-  const expected=session,setIndex=session.index,setQuestionCount=session.questionCount;setTimeout(()=>{if(session!==expected||session.questionCount!==setQuestionCount)return;if(session.type==='study'&&session.timeUp&&session.questionCount>=session.minQuestions)return finishSession(false);renderQuestion();},QuizLearning.HOLD_MS);
+  const expected=session,setQuestionCount=session.questionCount;
+  const same=()=>session===expected&&session.questionCount===setQuestionCount&&!session.finished;
+  const advance=()=>{if(session.type==='study'&&session.timeUp&&session.questionCount>=session.minQuestions)return finishSession(false);renderQuestion();};
+  quizFlow.afterAnswer({correct:ok,isCurrent:same,advance,retry:{render:advance,isCurrent:same}});
 }
 function makeStudySession(){
   const rec=recommendedSession(),plan=state.pendingPlan;return{type:'study',startedAt:Date.now(),endsAt:Date.now()+rec.minutes*60000,durationSec:rec.minutes*60,minQuestions:8,questionCount:0,index:0,correct:0,points:0,combo:0,bestCombo:0,times:[],errors:[],records:[],recentIds:[],recentConcepts:[],recentAnswers:[],seenInClass:[],categoryCounts:{},curatedCount:0,retriedIds:[],lesson:state.classSessions%12+1,relearnQueue:[],focusCategories:plan?.focusCategories?.length?plan.focusCategories:rec.focus,planItemIds:plan?.itemIds||[],planTitle:plan?.title||null,planId:plan?.id||null,timeUp:false,milestonesShown:{half:false,final:false}};
 }
-function startStudy(){if(resumeStudy())return;const win=planWindowState(state.pendingPlan);if(win.status==='early'){renderHome();$('planStatus').classList.remove('hidden');$('planStatus').textContent=`CONTRATO TODAVÍA CERRADO · disponible desde ${fmtPlanDate(win.window.earliest)}.`;return;}try{ensureAudio();}catch(e){}session=makeStudySession();save();show('gameScreen');renderSegments();startClassClock();renderQuestion();}
+async function startStudy(){await window.QuizErgonomics.ready;if(resumeStudy())return;const win=planWindowState(state.pendingPlan);if(win.status==='early'){renderHome();$('planStatus').classList.remove('hidden');$('planStatus').textContent=`CONTRATO TODAVÍA CERRADO · disponible desde ${fmtPlanDate(win.window.earliest)}.`;return;}try{ensureAudio();}catch(e){}session=makeStudySession();save();show('gameScreen');renderSegments();startClassClock();renderQuestion();}
 // The 15-question quick quiz uses the Phrasal-style target ceremony.
 // Study contracts retain their original scheduling and progress rules.
 let quickStartPending=false;
@@ -351,6 +356,7 @@ async function classroomMissionEnd(score,target){
 }
 
 async function startQuick(){
+  await window.QuizErgonomics.ready;
   if(quickStartPending)return;quickStartPending=true;
   try{
     try{ensureAudio();}catch(e){}
@@ -364,6 +370,7 @@ function pizarrasMedalCounts(){const rows=(state.history||[]).filter(x=>x?.type=
 function renderPizarrasMedals(latest=null){const counts=pizarrasMedalCounts(),strip=window.AdrianAchievements?.medalStripHtml?.(counts,{context:"summary"})||"";if($("startMedals"))$("startMedals").innerHTML=strip;if(latest&&latest.type==="quick"&&Number(latest.questions)===15){const badge=window.AdrianAchievements?.badgeHtml?.(Number(latest.correct)||0,15,counts)||"";if(badge){$("endMedal").innerHTML=badge;window.AdrianAchievements?.play?.(null,Number(latest.correct)||0,15);}}}
 function medal(score){return score===15?['🥇','GOLD · 15/15']:score===14?['🟣','VIOLET · 14/15']:score===13?['🔵','BLUE · 13/15']:['',''];}
 function finishSession(early=false){
+  quizFlow.cancel();
   if(!session||session.finished)return;session.finished=true;state.activeSession=null;clearInterval(timerHandle);clearInterval(classHandle);clearTimeout(revealHandle);clearTimeout(milestoneHideHandle);revealHandle=null;milestoneHideHandle=null;
   const completed=session,answered=completed.questionCount,acc=answered?completed.correct/answered:0,avg=mean(completed.times),elapsedSec=Math.max(1,(Date.now()-completed.startedAt)/1000),beforeMastered=0;
   for(const r of completed.records){const q=byId(r.id);if(q&&mastered(q))beforeMastered++;}const consolidated=new Set(completed.records.filter(r=>{const q=byId(r.id);return r.ok&&q&&(st(q).intervalDays||0)>=4;}).map(r=>r.id)).size;
@@ -383,8 +390,8 @@ function renderEnd(row,completed){
   if(study){$('nextClass').innerHTML='<b>Clase cerrada · análisis obligatorio</b>Copia el JSON y pásamelo en el chat. La siguiente clase adaptativa se desbloquea únicamente al aplicar el nuevo plan.';$('continueBtn').textContent='ABRIR PLAN / JSON';$('copySessionBtn').classList.remove('hidden');}else{$('nextClass').innerHTML='<b>Quiz rápido completado</b>Este modo no crea ni consume una clase adaptativa.';$('continueBtn').textContent='DASHBOARD';$('copySessionBtn').classList.add('hidden');}renderEndErrors(completed.errors);
 }
 function renderEndErrors(errors){const host=$('endErrors');if(!errors.length){host.innerHTML='<h3>Repaso</h3><div class="status">Sin errores en esta sesión.</div>';return;}host.innerHTML='<h3>Errores de esta sesión · '+errors.length+'</h3>'+errors.slice(-12).map(e=>`<div class="errorcard"><b>${escapeHtml(e.concept)} · ${escapeHtml(e.mode)}</b><p>${escapeHtml(e.prompt)}</p><p>Tu respuesta: ${escapeHtml(e.shown??'—')}</p><p><strong>Correcta:</strong> ${escapeHtml(e.correct)} · ${escapeHtml(e.explanation||'')}</p></div>`).join('');}
-function abortSession(){if(!session)return;if(session.type==='study'){if(confirm(`¿Interrumpir excepcionalmente este contrato de ${Math.round(session.durationSec/60)} min antes de terminar? Se guardará lo trabajado.`))finishSession(true);}else{if(confirm('¿Salir del quiz rápido? Esta ronda no contará como completada.')){clearInterval(timerHandle);clearInterval(classHandle);clearTimeout(revealHandle);session=null;renderHome();show('startScreen');}}}
-function goHome(){clearInterval(timerHandle);clearInterval(classHandle);clearTimeout(revealHandle);session=null;renderHome();show('startScreen');}
+function abortSession(){quizFlow.cancel();if(!session)return;if(session.type==='study'){if(confirm(`¿Interrumpir excepcionalmente este contrato de ${Math.round(session.durationSec/60)} min antes de terminar? Se guardará lo trabajado.`))finishSession(true);}else{if(confirm('¿Salir del quiz rápido? Esta ronda no contará como completada.')){clearInterval(timerHandle);clearInterval(classHandle);clearTimeout(revealHandle);session=null;renderHome();show('startScreen');}}}
+function goHome(){quizFlow.cancel();clearInterval(timerHandle);clearInterval(classHandle);clearTimeout(revealHandle);session=null;renderHome();show('startScreen');}
 
 function categoryRows(){return categoryStats().map(x=>`<div class="skill"><div class="name">${escapeHtml(x.category)} · ${x.due} due</div><div class="track"><div class="fill" style="width:${Math.round(x.mastery)}%"></div></div><div class="pct">${Math.round(x.mastery)}%</div></div>`).join('');}
 function weakItems(limit=16){return [...allBank()].sort((a,b)=>(dueNow(b)?1:0)-(dueNow(a)?1:0)||mastery(a)-mastery(b)||st(b).misses-st(a).misses).slice(0,limit);}
@@ -418,3 +425,18 @@ function reset(){if(!confirm('¿Reiniciar Classroom v3 desde la clase 1? El hist
 load();renderHome();setTimeout(()=>{if(state.pendingPlan)dispatchTaskerCalendar(state.pendingPlan);},650);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session?.type==='study'&&!session.finished)updateClassClock();});window.addEventListener('focus',()=>{if(session?.type==='study'&&!session.finished)updateClassClock();});
 $('startClassBtn').onclick=startStudy;$('quickBtn').onclick=startQuick;$('readFirstToggle').onclick=toggleReadFirstMode;$('statsBtn').onclick=()=>{renderStats();show('statsScreen');};$('statsBackBtn').onclick=goHome;$('jsonBtn').onclick=openJson;$('jsonBackBtn').onclick=goHome;$('copyStateBtn').onclick=copyCoachState;$('applyPlanBtn').onclick=applyJson;$('clearPlanBtn').onclick=clearPlan;$('continueBtn').onclick=()=>{goHome();};$('copySessionBtn').onclick=copyLatestSession;$('homeBtn').onclick=goHome;$('abortBtn').onclick=abortSession;$('exportBtn').onclick=exportProgress;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>importFile(e.target.files[0]);$('resetBtn').onclick=reset;
+
+// A queued interval from a previous question may run after clearInterval.
+// Its captured owner, question and generation must still match before any work.
+function guardedQuizInterval(fn,ms=50){
+ const owner=session,index=session?.questionCount,epoch=quizFlow.epoch;
+ const handle=setInterval(()=>{
+  if(session!==owner||session?.questionCount!==index||quizFlow.epoch!==epoch||locked){clearInterval(handle);return;}
+  fn();
+ },ms);
+ return handle;
+}
+window.QuizErgonomics.bind(()=>{
+ if(!session)return null;
+ const results=session.records.map(r=>!!r.ok),reading=$("answers").classList.contains("read-first-hidden");return {owner:session,questions:session.queue||allBank(),results,index:Math.max(0,session.questionCount-(locked?1:0)),total:session.type==='study'?Math.max(session.minQuestions,session.questionCount):session.queue.length,study:session.type==='study',limit:TIME_LIMIT,locked,reading,remaining:locked?TIME_LIMIT-(session.times.at(-1)||0):reading?TIME_LIMIT:(deadline-Date.now())/1000};
+});

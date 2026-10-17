@@ -1,0 +1,96 @@
+/* Quiz ergonomics 1.0.0. Opt-in only: Grammar, Cloze, Phrasal, Classroom. */
+body[data-quiz-ergonomics] #gameScreen{
+ --bg-app:#EEF2F6;--card-bg:#FFF;--text-main:#0F172A;--text-muted:#64748B;--border-light:#CBD5E1;
+ --accent-blue:#3B82F6;--accent-blue-bg:#EFF6FF;--correct-green:#10B981;--correct-bg:#ECFDF5;
+ --wrong-red:#EF4444;--wrong-bg:#FEF2F2;--highlight-yellow:#FDE68A;
+}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen{
+ background:var(--bg-app)!important;color:var(--text-main)!important;padding:12px 16px!important;
+ display:flex;flex-direction:column;justify-content:flex-start!important;gap:16px;min-height:100dvh!important;height:auto!important;overflow:visible!important;
+ transition:opacity 150ms cubic-bezier(.22,1,.36,1),transform 150ms cubic-bezier(.22,1,.36,1)!important;
+}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen.hidden{display:none!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen.is-transitioning{opacity:0;transform:translateY(6px)!important;pointer-events:none}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen .playfield{width:100%;max-width:640px;margin:0 auto!important;display:flex;flex-direction:column;gap:16px;padding:0!important;flex:0 0 auto!important;transform:none!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .focus-stack{width:100%;max-width:640px;display:flex;flex-direction:column;gap:16px;transform:none!important;margin:0!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .answer-stage{width:100%;height:auto!important;min-height:0!important;display:flex;flex-direction:column;gap:16px;position:relative!important;transform:none!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .focus-header{position:static!important;max-width:640px;width:100%;margin:0 auto}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen :is(.integrated-progress,.integrated-timer,.focus-native-timer,.focus-counter,.qnum,#focusSeconds,#focusTimerText,#focusTimeDisplay,#segments,.seconds-bar,#timer,.timer-wrap,#quiz-segmented-timer,.nucleo-progress,.nucleo-progress-fill){display:none!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-track{display:grid;gap:5px;padding:4px 0;margin:0!important;width:100%}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill{height:6px;border-radius:999px;background:#CBD5E1;transition:background-color 250ms ease,transform 200ms ease}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill.is-current{background:var(--accent-blue);transform:scaleY(1.3)}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill.is-correct{background:var(--correct-green)}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill.is-wrong{background:var(--wrong-red)}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen .prompt-card{
+ box-sizing:border-box;background:var(--card-bg)!important;border-radius:16px!important;padding:16px 20px!important;
+ box-shadow:0 2px 8px rgba(15,23,42,.05)!important;border:1px solid #E2E8F0!important;
+ min-height:var(--qe-prompt-height,152px)!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;
+ margin:0!important;width:100%;position:relative;transform:none!important;height:auto!important;flex-shrink:0;
+}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .prompt-meta{font-size:16px;font-weight:600;color:var(--text-muted)!important;margin-bottom:6px;text-align:left}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen .prompt-text#questionText,
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen .prompt-text{
+ font-family:Roboto,"Segoe UI",Arial,sans-serif!important;font-size:max(19px,1.15rem)!important;line-height:1.48!important;font-weight:500!important;color:var(--text-main)!important;margin:auto 0!important;text-align:left!important;overflow-wrap:anywhere;
+}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .gap-slot{display:inline-block;min-width:68px;padding:0 8px;margin:0 3px;border-bottom:3px solid var(--accent-blue);background:var(--accent-blue-bg);color:transparent;border-radius:6px 6px 2px 2px;vertical-align:baseline}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen :is(.gap-filled,.ql-answer){display:inline;padding:1px 8px;margin:0 2px;background:var(--highlight-yellow)!important;color:#0F172A!important;font-weight:700!important;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.08)!important;animation:qe-pop-in 180ms cubic-bezier(.34,1.56,.64,1)}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .ql-correction{font-size:19px!important;line-height:1.35!important;padding:4px 8px!important;margin:4px 0!important;border:0!important;box-shadow:none!important;background:var(--highlight-yellow)!important;color:var(--text-main)!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .ql-correction small{font-size:16px}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen #answers#answers.options-list{
+ display:flex!important;flex-direction:column!important;gap:10px!important;position:relative!important;transform:none!important;width:100%;margin:0!important;
+}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen #answers#answers.options-list.grid-2x2{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen #answers#answers > button.answer.option-btn{
+ box-sizing:border-box;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;
+ width:100%!important;min-height:var(--qe-option-height,56px)!important;height:auto!important;padding:10px 14px!important;background:var(--card-bg)!important;
+ border:1.5px solid var(--border-light)!important;border-radius:12px!important;text-align:left!important;box-shadow:none!important;
+ cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transform:none!important;text-shadow:none!important;
+ transition:transform 80ms ease,background-color 150ms ease,border-color 150ms ease!important;opacity:1!important;color:var(--text-main)!important;animation:none!important;
+}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen #answers#answers > button.option-btn::before{content:none!important;display:none!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen #answers#answers > button.option-btn:active{transform:scale(.985)!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen #answers.options-list.is-locked{pointer-events:none}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .option-badge{flex-shrink:0;width:28px;height:28px;border-radius:7px;background:#F1F5F9;color:var(--text-muted);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:background-color 150ms ease,color 150ms ease}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .option-badge::before{content:attr(data-letter)}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .option-label{font-size:max(19px,1.05rem)!important;font-weight:600;line-height:1.25;color:var(--text-main)!important;text-align:left!important}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen #answers#answers > button.option-btn:is(.is-correct,.good){background:var(--correct-bg)!important;border-color:var(--correct-green)!important;outline:0!important}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen #answers#answers > button.option-btn:is(.is-wrong,.bad){background:var(--wrong-bg)!important;border-color:var(--wrong-red)!important;outline:0!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .option-btn:is(.is-correct,.good) .option-badge{background:var(--correct-green);color:#0F172A}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .option-btn:is(.is-wrong,.bad) .option-badge{background:var(--wrong-red);color:#0F172A}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .timer-footer{width:100%;margin-top:4px}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .timer-header{display:flex;justify-content:space-between;gap:12px;font-size:16px!important;color:var(--text-muted)!important;margin-bottom:6px}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .timer-number{font-variant-numeric:tabular-nums;color:var(--text-main)!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .timer-bar-bg{width:100%;height:7px;background:#E2E8F0;border-radius:999px;overflow:hidden}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .timer-bar-fill{height:100%;width:100%;background:#F59E0B;border-radius:999px;transition:width 100ms linear,background-color 300ms ease}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .timer-bar-fill.is-critical{background:var(--wrong-red)}
+@keyframes qe-pop-in{0%{transform:scale(.92);opacity:.5}100%{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){
+ body[data-quiz-ergonomics] #gameScreen,body[data-quiz-ergonomics] #gameScreen *{transition:none!important;animation:none!important}
+ body[data-quiz-ergonomics] #gameScreen.is-transitioning{transform:none!important}
+}
+
+body[data-quiz-ergonomics]:has(#gameScreen:not(.hidden))::after{display:none!important}
+
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen #qe-counter{color:var(--text-muted)!important;font-size:16px!important;font-weight:600!important}
+
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .categoryline{display:none!important}
+
+/* Legacy focus offsets must not compete with the normal document flow. */
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen,
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen :is(.playfield,.focus-stack,.answer-stage){
+ position:relative!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;translate:none!important;scale:none!important;
+}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen .playfield{justify-content:flex-start!important}
+
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .focus-header{height:60px!important;min-height:60px!important;flex-shrink:0!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .focus-topline{height:52px!important;min-height:52px!important;display:flex!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen #focusPoints{white-space:nowrap!important;min-width:0!important;flex:1 1 auto!important}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen #focusPauseBtn{flex:0 0 52px!important}
+
+/* A single page scroller: old nested focus scrollers moved the answer targets. */
+html:has(body[data-quiz-ergonomics] #gameScreen:not(.hidden)){height:auto!important;overflow-y:auto!important}
+body[data-quiz-ergonomics]:has(#gameScreen:not(.hidden)){height:auto!important;min-height:100dvh!important;overflow:visible!important}
+body[data-quiz-ergonomics]:has(#gameScreen:not(.hidden)) .app{height:auto!important;max-height:none!important;overflow:visible!important}
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen :is(.playfield,.focus-stack,.answer-stage){height:auto!important;max-height:none!important;overflow:visible!important}
+
+html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen .prompt-text{min-height:0!important;max-height:none!important;height:auto!important;flex:0 1 auto!important;display:block!important}

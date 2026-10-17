@@ -12,8 +12,8 @@ function clear(){document.querySelectorAll('.ql-correction').forEach(x=>x.remove
 function show(host,prompt,answer,label='Respuesta correcta'){
  if(typeof host==='string')host=document.querySelector(host);if(!host)return;inject();clear();
  const p=String(prompt||''),a=String(answer??''),gap=p.match(/_{2,}/);
- if(gap){host.replaceChildren(document.createTextNode(p.slice(0,gap.index)));const m=document.createElement('mark');m.className='ql-answer';m.textContent=a;host.append(m,document.createTextNode(p.slice(gap.index+gap[0].length)));host.setAttribute('aria-live','polite');m.scrollIntoView({block:'nearest',behavior:'instant'});}
- else {const box=document.createElement('div'),small=document.createElement('small'),strong=document.createElement('strong');box.className='ql-correction';box.setAttribute('role','status');small.textContent=label;strong.textContent=a;box.append(small,strong);host.before(box);box.scrollIntoView({block:"nearest",behavior:"instant"});}
+ if(gap){host.replaceChildren(document.createTextNode(p.slice(0,gap.index)));const m=document.createElement('mark');m.className='ql-answer';m.textContent=a;host.append(m,document.createTextNode(p.slice(gap.index+gap[0].length)));host.setAttribute('aria-live','polite');if(!document.body.hasAttribute('data-quiz-ergonomics')||!host.closest('#gameScreen'))m.scrollIntoView({block:'nearest',behavior:'instant'});}
+ else {const box=document.createElement('div'),small=document.createElement('small'),strong=document.createElement('strong');box.className='ql-correction';box.setAttribute('role','status');small.textContent=label;strong.textContent=a;box.append(small,strong);host.before(box);if(!document.body.hasAttribute('data-quiz-ergonomics')||!host.closest('#gameScreen'))box.scrollIntoView({block:'nearest',behavior:'instant'});}
 }
 function gap(host,answer){if(!host)return;inject();host.replaceChildren(document.createTextNode(String(answer??'')));host.classList.add('ql-answer');host.setAttribute('aria-label','Respuesta correcta: '+answer);}
 function ready(info,level,now=Date.now()){
