@@ -1,4 +1,4 @@
-const APP_VERSION='3.0.14';
+const APP_VERSION='3.0.15';
 const STORAGE_KEY='classroom_b2_state_v3'; // The previous course stays saved separately.
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
@@ -317,7 +317,7 @@ function answer(text,button,timeout){
    session.records.push({id:current.id,category:current.category,concept:current.concept,ok,time:+elapsed.toFixed(2),mode,preReadMs:currentPreReadMs,prompt:session.currentPrompt,answer:text||null,correct:current.correct,at:Date.now()});
   state.answerHistory.push({at:Date.now(),id:current.id,category:current.category,concept:current.concept,ok,time:elapsed,mode,studyType:session.type,studyMode:readFirstMode?'READ_FIRST':'STANDARD',preReadMs:currentPreReadMs,prompt:session.currentPrompt,answer:text||null,correctAnswer:current.correct,explanation:current.explanation||''});session.answerCommitted=true;state.answerHistory=QuizLearning.retain(state.answerHistory,3000,STORAGE_KEY+':answers');if(session.type==='quick')session.index++;save();
   QuizLearning.show('#questionText',session.currentPrompt,current.correct);
-  [...$('answers').children].forEach(b=>{b.disabled=true;if(b.textContent===current.correct)b.classList.add('good');else b.classList.add('dim');});if(button&&!ok){button.classList.remove('dim');button.classList.add('bad');}
+  [...$('answers').querySelectorAll('button.answer')].forEach(b=>{b.disabled=true;if(b.textContent===current.correct)b.classList.add('good');else b.classList.add('dim');});if(button&&!ok){button.classList.remove('dim');button.classList.add('bad');}
   $('feedback').innerHTML=`<b>${ok?'CORRECT':timeout?'TIME':'NOT QUITE'} · ${delta>0?'+':''}${delta} PTS</b>${current.explanation||''}`;updateHud();
   const expected=session,setIndex=session.index,setQuestionCount=session.questionCount;setTimeout(()=>{if(session!==expected||session.questionCount!==setQuestionCount)return;if(session.type==='study'&&session.timeUp&&session.questionCount>=session.minQuestions)return finishSession(false);renderQuestion();},QuizLearning.HOLD_MS);
 }

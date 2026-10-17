@@ -1,7 +1,7 @@
 {
   "app": "Pizarras",
-  "version": "3.0.13",
-  "build": "20261015-classroom-durable-progress",
+  "version": "3.0.15",
+  "build": "20261017-quick-answer-buttons",
   "questions": 413,
   "sessionModel": "12 thematic lessons + novelty-first balanced rotation + quick quiz",
   "responseTimeLimit": 15,
