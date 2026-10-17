@@ -1,4 +1,4 @@
-const APP_VERSION='3.0.13';
+const APP_VERSION='3.0.14';
 const STORAGE_KEY='classroom_b2_state_v3'; // The previous course stays saved separately.
 const READ_FIRST_KEY='pizarras_read_first_v1';
 const TIME_LIMIT=15;
@@ -325,7 +325,41 @@ function makeStudySession(){
   const rec=recommendedSession(),plan=state.pendingPlan;return{type:'study',startedAt:Date.now(),endsAt:Date.now()+rec.minutes*60000,durationSec:rec.minutes*60,minQuestions:8,questionCount:0,index:0,correct:0,points:0,combo:0,bestCombo:0,times:[],errors:[],records:[],recentIds:[],recentConcepts:[],recentAnswers:[],seenInClass:[],categoryCounts:{},curatedCount:0,retriedIds:[],lesson:state.classSessions%12+1,relearnQueue:[],focusCategories:plan?.focusCategories?.length?plan.focusCategories:rec.focus,planItemIds:plan?.itemIds||[],planTitle:plan?.title||null,planId:plan?.id||null,timeUp:false,milestonesShown:{half:false,final:false}};
 }
 function startStudy(){if(resumeStudy())return;const win=planWindowState(state.pendingPlan);if(win.status==='early'){renderHome();$('planStatus').classList.remove('hidden');$('planStatus').textContent=`CONTRATO TODAVÍA CERRADO · disponible desde ${fmtPlanDate(win.window.earliest)}.`;return;}try{ensureAudio();}catch(e){}session=makeStudySession();save();show('gameScreen');renderSegments();startClassClock();renderQuestion();}
-function startQuick(){try{ensureAudio();}catch(e){}session={type:'quick',queue:buildQuickQueue(),index:0,questionCount:0,correct:0,points:0,combo:0,bestCombo:0,times:[],errors:[],records:[],recentIds:[],recentConcepts:[],relearnQueue:[],startedAt:Date.now()};show('gameScreen');renderSegments();renderQuestion();}
+// The 15-question quick quiz uses the Phrasal-style target ceremony.
+// Study contracts retain their original scheduling and progress rules.
+let quickStartPending=false;
+function classroomQuickTarget(){
+  const rows=(state.history||[]).filter(x=>x?.type==='quick'&&Number(x.questions)===15).slice(-8);
+  const recent=rows.length?rows.reduce((sum,x)=>sum+(Number(x.correct)||0),0)/rows.length:7.5;
+  return clamp(Math.round((recent*.64+7.5*.36+.35)*2)/2,4.5,14.5);
+}
+async function classroomMissionIntro(target){
+  const el=$('classroomMission');if(!el)return;
+  el.hidden=false;el.className='classroom-mission intro';
+  $('classroomMissionBody').innerHTML='<small>QUIZ RÁPIDO · 15 PREGUNTAS</small><b>TARGET</b><strong>'+target.toFixed(1)+'<span>/15</span></strong><p>15 segundos por respuesta</p>';
+  const count=$('classroomMissionCount');
+  for(const n of [3,2,1]){count.textContent=n;try{tone(n===3?523:n===2?659:784,.07,.018);}catch(e){}await new Promise(r=>setTimeout(r,650));}
+  count.textContent='GO';try{tone(1318,.09,.022);}catch(e){}
+  await new Promise(r=>setTimeout(r,250));el.hidden=true;
+}
+async function classroomMissionEnd(score,target){
+  const el=$('classroomMission');if(!el||!Number.isFinite(target))return;
+  const hit=score>=target;el.hidden=false;el.className='classroom-mission '+(hit?'hit':'miss');
+  $('classroomMissionBody').innerHTML='<small>QUIZ COMPLETADO</small><b>'+(hit?'TARGET SUPERADO':'TARGET NO ALCANZADO')+'</b><strong>'+score+'<span>/15</span></strong><p>Objetivo: '+target.toFixed(1)+'/15</p>';
+  $('classroomMissionCount').textContent=hit?'✓':'↻';
+  await new Promise(r=>setTimeout(r,1700));el.hidden=true;
+}
+
+async function startQuick(){
+  if(quickStartPending)return;quickStartPending=true;
+  try{
+    try{ensureAudio();}catch(e){}
+    const target=classroomQuickTarget();
+    await classroomMissionIntro(target);
+    session={type:'quick',queue:buildQuickQueue(),index:0,questionCount:0,correct:0,points:0,combo:0,bestCombo:0,times:[],errors:[],records:[],recentIds:[],recentConcepts:[],relearnQueue:[],target,startedAt:Date.now()};
+    show('gameScreen');renderSegments();renderQuestion();
+  }finally{quickStartPending=false;}
+}
 function pizarrasMedalCounts(){const rows=(state.history||[]).filter(x=>x?.type==="quick"&&Number(x.questions)===15).map(r=>({correct:Number(r.correct)||0,total:15}));return window.AdrianAchievements?.countsFromHistory?.(rows)||{blue:0,violet:0,gold:0};}
 function renderPizarrasMedals(latest=null){const counts=pizarrasMedalCounts(),strip=window.AdrianAchievements?.medalStripHtml?.(counts,{context:"summary"})||"";if($("startMedals"))$("startMedals").innerHTML=strip;if(latest&&latest.type==="quick"&&Number(latest.questions)===15){const badge=window.AdrianAchievements?.badgeHtml?.(Number(latest.correct)||0,15,counts)||"";if(badge){$("endMedal").innerHTML=badge;window.AdrianAchievements?.play?.(null,Number(latest.correct)||0,15);}}}
 function medal(score){return score===15?['🥇','GOLD · 15/15']:score===14?['🟣','VIOLET · 14/15']:score===13?['🔵','BLUE · 13/15']:['',''];}
@@ -337,7 +371,9 @@ function finishSession(early=false){
   const row={learning:globalMastery(),at:Date.now(),type:completed.type,durationSec:elapsedSec,plannedSec:completed.durationSec||null,early,questions:answered,correct:completed.correct,accuracy:acc,avgTime:avg,points:completed.points,bestCombo:completed.bestCombo,filter:activeFilter,focusCategories:completed.focusCategories||[],planId:completed.planId||null,planTitle:completed.planTitle||null,consolidated,errors:completed.errors.length};state.history.push(row);state.history=QuizLearning.preserve(state.history,STORAGE_KEY+':sessions');
   if(completed.type==='study'&&state.pendingPlan&&state.pendingPlan.id===completed.planId){state.planHistory.push({id:state.pendingPlan.id||null,title:state.pendingPlan.title||'',completedAt:Date.now(),questions:answered,accuracy:acc});state.planHistory=state.planHistory.slice(-100);state.pendingPlan=null;}
   state.awaitingCoachPlan=false;
+  if(completed.type==='quick'){row.target=completed.target;row.targetHit=completed.correct>=completed.target;}
   save();try{window.HubPathGame?.resolve?.({appId:"pizarras",correct:completed.correct,total:Math.max(1,answered),bestCombo:completed.bestCombo||0,eventId:`pizarras:${row.at}:${completed.type}`});}catch(e){console.warn("Hub Oca unavailable",e);}renderEnd(row,completed);renderPizarrasMedals(row);show('endScreen');session=completed;
+  if(completed.type==='quick')void classroomMissionEnd(completed.correct,completed.target).catch(e=>console.warn('Quick target screen unavailable',e));
 }
 function renderEnd(row,completed){
   const study=row.type==='study',score=completed.correct,answered=row.questions,acc=Math.round(row.accuracy*100),avg=row.avgTime||0;
