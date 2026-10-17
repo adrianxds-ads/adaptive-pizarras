@@ -140,7 +140,21 @@ body {
   background-color: var(--timer-warning) !important;
 }
 </style>
-<link rel="stylesheet" href="/adrian-core/design/integrated-v11/integrated-theme.css"><link rel="stylesheet" href="./classroom-real-theme.css"></head>
+<link rel="stylesheet" href="/adrian-core/design/integrated-v11/integrated-theme.css"><link rel="stylesheet" href="./classroom-real-theme.css"><style id="classroom-phrasal-target-style">
+.classroom-mission[hidden]{display:none!important}
+.classroom-mission{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;text-align:center;background:rgba(7,12,17,.97);padding:22px;color:#EAF0F5;font:900 19px/1.35 system-ui,sans-serif}
+.classroom-mission .mission-panel{width:min(100%,430px);padding:30px 22px;border-radius:23px;border:2px solid #D4B07B;background:#1B2228;box-shadow:0 12px 36px #0008}
+.classroom-mission small,.classroom-mission b,.classroom-mission strong,.classroom-mission p{display:block}
+.classroom-mission small{font-size:14px;letter-spacing:.05em;color:#BFCBD0}
+.classroom-mission b{font-size:29px;margin:12px 0}
+.classroom-mission strong{font-size:clamp(60px,17vw,92px);color:#D4B07B;line-height:1.05;font-variant-numeric:tabular-nums}
+.classroom-mission strong span{font-size:24px}
+.classroom-mission p{font-size:17px;color:#C5D1D8}
+.classroom-mission .mission-count{font-size:46px;color:#EAF0F5;padding-top:16px}
+.classroom-mission.hit strong{color:#77C8A1}
+.classroom-mission.miss strong{color:#D89C9B}
+</style>
+</head>
 <body data-nucleo-game="pizarras" data-integrated-app="classroom" style="--integrated-tint:#E5D8C9;--integrated-accent:#F29E4C"><div class="app">
 <section id="startScreen" class="screen start"><div class="panel">
 <div class="kicker">CLASSROOM B2 · SARA</div><h1 id="startLevel">Classroom B2</h1><p class="subtitle">Novedades en cada clase · repaso equilibrado · progreso conservado.</p><div id="startMeta" class="meta"></div>
@@ -162,7 +176,7 @@ body {
 </div>
 <script type="application/x-classroom-deferred" src="./learning-feedback.js?v=1.0.0"></script>
 <script type="application/x-classroom-deferred" src="/adrian-core/components/adrian-sync.js?v=1.0.8-0d4fa97"></script><script type="application/x-classroom-deferred" src="/adrian-core/design/adrian-visual-system.js?v=core-20261004b"></script><script type="application/x-classroom-deferred" src="./questions.js?v=2.2.0"></script><script type="application/x-classroom-deferred" src="./curriculum-v3.js?v=3.0.0"></script><script type="application/x-classroom-deferred" src="./rotation-v3.js?v=3.0.0"></script><script type="application/x-classroom-deferred" src="/adrian-core/components/adrian-achievements.js?v=stars4"></script><script type="application/x-classroom-deferred" src="/adrian-core/components/hub-charts.js?v=1.1.0"></script>
-<script type="application/x-classroom-deferred" src="/adrian-core/components/adrian-performance.js?v=1.1.0"></script><script type="application/x-classroom-deferred" src="./app.js?v=3.0.2-scopefix20261011"></script><script type="application/x-classroom-deferred" src="./learning-json-v3.js?v=3.0.1"></script><script type="application/x-classroom-deferred">document.getElementById('learningJsonBtn').onclick=()=>window.AdrianLearningJSON?.openPanel({app:'pizarras',technical:()=>openJson()});</script><script type="application/x-classroom-deferred" src="./performance-adapter.js?v=1.1.0"></script><script type="application/x-classroom-deferred">if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=scopefix20261011',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));</script>
+<script type="application/x-classroom-deferred" src="/adrian-core/components/adrian-performance.js?v=1.1.0"></script><script type="application/x-classroom-deferred" src="./app.js?v=3.0.14-quicktarget20261017"></script><script type="application/x-classroom-deferred" src="./learning-json-v3.js?v=3.0.1"></script><script type="application/x-classroom-deferred">document.getElementById('learningJsonBtn').onclick=()=>window.AdrianLearningJSON?.openPanel({app:'pizarras',technical:()=>openJson()});</script><script type="application/x-classroom-deferred" src="./performance-adapter.js?v=1.1.0"></script><script type="application/x-classroom-deferred">if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=quicktarget20261017',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));</script>
 
 <script type="application/x-classroom-deferred" src="/adrian-core/components/hub-quiz-ux.js?v=20261011-2"></script>
 <script type="application/x-classroom-deferred" src="/adrian-core/components/hub-nav.js?v=12-20261011"></script>
@@ -224,4 +238,7 @@ body {
   setInterval(initTimer, 1000);
 })();
 </script>
-<script type="application/x-classroom-deferred" src="/adrian-core/design/integrated-v11/integrated-view.js"></script><script type="application/x-classroom-deferred" src="./classroom-data-guard.js"></script><script src="./classroom-progress-storage.js"></script><script src="./classroom-progress-bootstrap.js"></script></body></html>
+<script type="application/x-classroom-deferred" src="/adrian-core/design/integrated-v11/integrated-view.js"></script><script type="application/x-classroom-deferred" src="./classroom-data-guard.js"></script><script src="./classroom-progress-storage.js"></script><script src="./classroom-progress-bootstrap.js"></script><section id="classroomMission" class="classroom-mission" hidden aria-live="polite">
+<div class="mission-panel"><div id="classroomMissionBody"></div><div id="classroomMissionCount" class="mission-count"></div></div>
+</section>
+</body></html>
