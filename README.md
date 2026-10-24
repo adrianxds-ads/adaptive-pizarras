@@ -68,3 +68,12 @@ Evidencia reproducible en el entorno Windows: `C:\Users\adria\AppData\Local\Temp
 - Verificación de uso: Edge en perfil **temporal y aislado**, navegación a `https://adrianxds-ads.github.io/adaptive-pizarras/`, instalación del service worker actualizado, recarga offline e inicio del quiz con cuatro respuestas (PASS; sin errores JS). La sincronización remota se bloqueó en las pruebas para no crear datos ficticios.
 - Transición histórica 3.0.16 → 3.0.17 probada con service worker antiguo activo; el test espera la sustitución del controlador antes de cargar la versión nueva.
 - Publicación y funcionamiento en navegador verificados; **no se ha verificado todavía el Pixel 10 ni una actualización física de una instalación previa**. No se alteraron claves ni registros de progreso de usuarios. No se modificaron Hub ni Core.
+
+
+### 24/10/2026 · Cierre verificado en Pixel 10 real
+
+- **Dispositivo:** Pixel 10, Android 17; WebAPK instalado y abierto de forma normal mediante ADB. Chrome DevTools remoto confirmó `APP_VERSION=3.0.17`, la activación del service worker de la versión publicada y el arranque funcional. Sin reinstalación, borrado de cachés ni respuesta a ejercicios.
+- **Progreso conservado:** nivel 20, 19 sesiones y 492 respuestas. La recarga resolvió el bloqueo de carga de un script de Core con controlador antiguo; ClassroomBootComplete=true, sin ClassroomBootError y guardado persistente confirmado por IndexedDB. Registro v3 revisado frente al legado v2; 492 respuestas idénticas.
+- **Prueba offline física:** se simuló la pérdida de conexión solo en la pestaña mediante Chrome DevTools (sin apagar Wi‑Fi ni datos móviles). Recarga sin red correcta, interfaz cargada, service worker activo y mismos contadores antes/después. Después se restauró la red de la pestaña y se verificó el arranque online (**PASS**).
+- **Protección:** antes de la primera recarga se verificó una copia de seguridad local del almacenamiento. La posterior compresión GZIP de las claves de estudio se decodificó y comparó con los contadores e historiales originales; Classroom también se comprobó con registro IndexedDB respaldado y SHA-256 válido. Estas copias permanecen solo en el ordenador autorizado, fuera de Git; ningún dato personal se ha publicado.
+- **Resultado:** versión publicada y funcionamiento **comprobados en el dispositivo objetivo**. Se devolvió ChatGPT al primer plano del Pixel y se retiró el túnel temporal de depuración. Sin bloqueos técnicos pendientes de esta reparación.
