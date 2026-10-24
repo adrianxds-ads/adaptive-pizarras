@@ -1,4 +1,4 @@
-const APP_VERSION='3.0.16';
+const APP_VERSION='3.0.17';
 const quizFlow=new window.QuizFlowController();
 const STORAGE_KEY='classroom_b2_state_v3'; // The previous course stays saved separately.
 const READ_FIRST_KEY='pizarras_read_first_v1';

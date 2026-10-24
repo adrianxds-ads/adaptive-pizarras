@@ -1,7 +1,7 @@
 {
   "app": "Pizarras",
-  "version": "3.0.16",
-  "build": "20261017-quiz-ergonomics",
+  "version": "3.0.17",
+  "build": "20261024-deadline-guard",
   "questions": 413,
   "sessionModel": "12 thematic lessons + novelty-first balanced rotation + quick quiz",
   "responseTimeLimit": 15,
