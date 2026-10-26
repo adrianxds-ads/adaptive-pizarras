@@ -232,3 +232,40 @@ html:root body[data-arena-mobile-v2] #endScreen .medal-summary-host :is(.ad-meda
 html:root body[data-arena-mobile-v2] #endScreen .medal-summary-host{
   height:auto!important;padding:8px 0!important;margin:6px 0 10px!important;
 }
+
+
+/* Cloze Arena approved correct/wrong full-tile feedback.
+   Must beat the legacy quiz-ergonomics rules (previously showed only badge colors).
+   The four 2×2 options alone are affected; no production answer logic is touched. */
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers#answers>button.answer.option-btn.good,
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers#answers>button.answer.option-btn.is-correct {
+ background:#dcfce7!important;border-color:#10b981!important;
+ box-shadow:0 0 0 2px rgba(16,185,129,.22)!important;opacity:1!important;
+}
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers#answers>button.answer.option-btn.bad,
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers#answers>button.answer.option-btn.is-wrong {
+ background:#fee2e2!important;border-color:#ef4444!important;
+ box-shadow:0 0 0 1px rgba(239,68,68,.18)!important;opacity:1!important;
+}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #feedback.ar-synthetic-feedback{
+ box-sizing:border-box!important;display:block!important;min-height:0!important;
+ position:static!important;margin:9px 0 0!important;padding:10px 12px!important;
+ border:1.5px solid #10b981!important;border-radius:13px!important;background:#ecfdf5!important;
+ color:#13202b!important;font:600 13px/1.35 Roboto,system-ui,sans-serif!important;
+ white-space:normal!important;overflow-wrap:anywhere!important;
+}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #feedback.ar-synthetic-feedback:has(+ *){box-shadow:none!important}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers:has(button.bad)~#feedback.ar-synthetic-feedback{
+ background:#fef2f2!important;border-color:#ef4444!important;
+}
+.ar-timer[data-registered="1"]{border-color:#9cc8c4}
+.ar-timer[data-registered="1"] .ar-timer-fill{transition:none}
+html:root body[data-arena-mobile-v2="classroom"] .ar-hud-side{
+ justify-self:end;min-width:55px;text-align:right;color:#173d46;
+ font:800 11px/1.15 Roboto,system-ui,sans-serif;max-width:105px;
+ font-variant-numeric:tabular-nums;
+}
+html:root body[data-arena-mobile-v2="classroom"] .ar-count{font-size:13px}
+html:root body[data-arena-mobile-v2="classroom"] #gameScreen:not(.hidden) .ar-progress[aria-valuemax]{
+ max-width:100%;min-width:0;
+}

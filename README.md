@@ -88,3 +88,13 @@ Evidencia reproducible en el entorno Windows: `C:\Users\adria\AppData\Local\Temp
 - **QA verificadas en Edge temporal:** nueve de nueve combinaciones de 360x800, 390x844 y 412x915 para las tres apps; sesiones de 15 respuestas completas en las tres; pausa Grammar validada. Evidencias locales en la carpeta QA del espacio de revisión.
 - **Pendiente:** el arranque de partida offline no superó la prueba consistente en el perfil aislado. Sí se comprobó la caché y carga de la portada sin red. Resolver antes de publicar y comprobar en Pixel 10 la experiencia PWA real.
 - **Estado:** exclusivamente rama local feature/cloze-arena-mobile-20261026, sin push, merge ni publicación.
+
+
+### 26/10/2026 · Auditoría de equivalencia Cloze Arena v2 cerrada
+
+- Rama: feature/cloze-arena-mobile-20261026; sin merge, push ni publicación. Corrige la candidata anterior, cuya nota sobre offline queda superada.
+- Reparación: las tarjetas correctas/incorrectas ahora tienen fondo verde/rojo íntegro y feedback coherente; el HUD muestra lectura previa, urgencia y respuesta registrada. En Grammar/Phrasal la respuesta correcta visible se usa para el feedback sintético; los motores de corrección son originales.
+- Classroom: HUD del contrato de clase muestra tiempo y pregunta real sin límite falso de quince; 15 segmentos representan avance proporcional al mínimo de la sesión. Modo quiz rápido conserva sus 15 preguntas; no cambian sus reglas ni planificación.
+- Pruebas de entorno aislado: 9/9 pantallas móvil de tres apps en 360×800, 390×844 y 412×915; partida de 15 respuestas en cada juego; test específico de contrato Classroom 21 preguntas y 70 minutos restantes; arranque PWA offline y cuatro respuestas activas en los tres juegos. Manifiesto SHA-256 de CSS/JS verificado.
+- Intactos: bancos, contenidos, IDs, localStorage, IndexedDB, motores JS y referencias publicadas; Cloze estable no modificada.
+- Pendiente externo: aprobación visual en Pixel 10 físico; no se ha probado actualización de las instalaciones del dispositivo ni autorizado publicación.

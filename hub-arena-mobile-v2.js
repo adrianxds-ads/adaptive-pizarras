@@ -87,7 +87,7 @@
    sound.addEventListener("click",()=>{id("soundBtn")?.click();syncSound()});
   }else{
    // Keep HUD's third column balanced without introducing a nonfunctional sound control.
-   add(top,"span","ar-hud-side","15 s");
+   add(top,"span","ar-hud-side","15 s").id="arClassState";
   }
   const progress=add(h,"div","ar-progress");progress.id="arProgress";
   progress.setAttribute("role","progressbar");progress.setAttribute("aria-label","Progreso de la sesión");
@@ -114,30 +114,62 @@
   const actions=panel.querySelector(".end-quick-actions")||panel.querySelector(".actions");
   if(actions)actions.after(fold);else panel.appendChild(fold);
  }
+ function getSession(){
+  try{return typeof session!=="undefined"?session:null}catch(_){return null}
+ }
+ function getLocked(){
+  try{return typeof locked!=="undefined"&&locked}catch(_){return false}
+ }
+ function getStudy(){return getSession()?.type==="study"}
  function currentNumbers(){
   const qn=parseInt(text(id("qIndex")),10);
   const totalText=text(id("qTotal"));
   const total=parseInt(totalText.replace(/[^\d]/g,""),10);
   const focus=text(id("focusQuestionCounter")).match(/(\d+)\s*\/\s*(\d+)/);
-  return {index:focus?Number(focus[1]):(Number.isFinite(qn)?qn:1),
-   total:focus?Number(focus[2]):(Number.isFinite(total)&&total>=1&&total<=200?total:15)};
+  const study=app.kind==="classroom" && getStudy();
+  const current=focus?Number(focus[1]):(Number.isFinite(qn)?qn:1);
+  if(study){
+   const s=getSession();
+   const minimum=Math.max(1,Number(s?.minQuestions)||12);
+   // A study contract can exceed the minimum. Never pretend it ends at question 15.
+   return {index:current,total:Math.max(minimum,current),study:true};
+  }
+  return {index:current,total:focus?Number(focus[2]):(Number.isFinite(total)&&total>=1&&total<=200?total:15),study:false};
  }
  function updateHud(){
   if(!screen("gameScreen"))return;
   createHud();
-  const {index,total}=currentNumbers();
+  const {index,total,study}=currentNumbers();
   const badge=id("arModeBadge"),counter=id("arCount"),progress=id("arProgress");
   if(badge&&app.kind==="classroom"){
    const mode=text(id("qMode"))||"CLASSROOM";
    if(badge.textContent!==mode)badge.textContent=mode;
   }
-  if(counter){const label=index+" / "+total;if(counter.textContent!==label)counter.textContent=label}
-  if(progress){
-   if(progress.children.length!==total&&total<=50){
-    progress.replaceChildren();for(let i=0;i<total;i++)add(progress,"i");
+  if(counter){
+   const value=study?"CLASE · "+index:index+" / "+total;
+   if(counter.textContent!==value)counter.textContent=value;
+  }
+  if(app.kind==="classroom"){
+   const side=id("arClassState");
+   if(side){
+    if(study){
+     const s=getSession(),left=Math.max(0,Number(s?.endsAt||0)-Date.now());
+     const minutes=Math.floor(left/60000),seconds=Math.floor(left%60000/1000);
+     side.textContent="CLASE "+String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0");
+     side.title="Tiempo restante del contrato de clase";
+    }else{side.textContent="15 s";side.title="Límite por pregunta"}
    }
+  }
+  if(progress){
+   // Keep one 15-segment track even in long Classroom contracts; the number
+   // reflects the percentage of the minimum study requirement, never a false 15-question limit.
+   const cells=study?15:Math.max(1,Math.min(total,50));
+   if(progress.children.length!==cells){
+    progress.replaceChildren();for(let i=0;i<cells;i++)add(progress,"i");
+   }
+   const covered=study?Math.min(cells,Math.floor((index-1)/Math.max(1,total)*cells)):Math.max(0,index-1);
    for(let i=0;i<progress.children.length;i++){
-    const p=progress.children[i];p.className=i<index-1?"done":i===index-1?"active":"";
+    const p=progress.children[i];p.className=i<covered?"done":i===covered?"active":"";
    }
    progress.setAttribute("aria-valuenow",String(Math.max(0,index-1)));
    progress.setAttribute("aria-valuemax",String(total));
@@ -145,10 +177,14 @@
   const source=id("focusTimerText")||id("timerText");
   const sec=parseFloat(text(source).replace(",","."));
   const answers=id("answers");
-  const pre=!!answers?.classList.contains("read-first-hidden");
+  const pre=!!answers?.classList.contains("read-first-hidden") ||
+    (app.kind==="phrasal" && id("gameScreen")?.classList.contains("think-recall"));
+  const registered=getLocked();
+  syncAnswerFeedback(registered);
   const card=id("arTimer");
   if(card){
    card.dataset.preread=pre?"1":"0";
+   card.dataset.registered=registered?"1":"0";
    card.dataset.urgent=!pre&&Number.isFinite(sec)&&sec<=4.2?"1":"0";
    card.dataset.warn=!pre&&Number.isFinite(sec)&&sec>4.2&&sec<=6?"1":"0";
   }
@@ -158,7 +194,7 @@
    if(digits.textContent!==display)digits.textContent=display;
   }
   if(label){
-   const l=pre?"Lectura previa · sin presión":"Tiempo de respuesta · 15 s";
+   const l=registered?"Respuesta registrada":pre?"Lectura previa · sin presión":"Tiempo de respuesta · 15 s";
    if(label.textContent!==l)label.textContent=l;
   }
   if(fill){
@@ -173,6 +209,29 @@
    c.hidden=combo<2;c.textContent="🔥 ×"+combo;
   }
   syncSound();
+ }
+
+ function syncAnswerFeedback(registered){
+  const fb=id("feedback"),answers=id("answers");
+  if(!fb||!answers)return;
+  // Classroom owns its own explanation and feedback; never replace it.
+  if(app.kind==="classroom")return;
+  if(!registered){
+   if(fb.dataset.arSynthetic==="true"){fb.replaceChildren();fb.classList.remove("ar-synthetic-feedback");delete fb.dataset.arSynthetic}
+   return;
+  }
+  if(text(fb))return; // preserve any genuine engine output
+  const correct=answers.querySelector("button.answer.good,button.answer.is-correct");
+  const wrong=answers.querySelector("button.answer.bad,button.answer.is-wrong");
+  if(!correct)return;
+  const chosen=wrong?"incorrecta":"correcta";
+  // Same official answer from the existing rendered buttons; no scoring or grammar invented.
+  const label=correct.querySelector(".option-label")?.textContent.trim()
+     ||correct.textContent.replace(/^\s*[A-D]\s*/,"").trim();
+  fb.dataset.arSynthetic="true";
+  fb.classList.add("ar-synthetic-feedback");
+  const heading=add(fb,"strong","",chosen==="correcta"?"✓ Respuesta correcta":"✕ Revisa la respuesta");
+  if(chosen!=="correcta"){add(fb,"span",""," · ");add(fb,"span","","Clave: "+label)}
  }
  function boot(){
   const stage=id("gameScreen"),home=id("startScreen"),end=id("endScreen");
