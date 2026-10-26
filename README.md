@@ -118,3 +118,11 @@ Evidencia reproducible en el entorno Windows: `C:\Users\adria\AppData\Local\Temp
 - Validación aislada en Edge/Chromium con 360x800, 390x844, 412x915: 9/9 portadas geométricamente correctas incluso haciendo overflow-x: visible temporalmente; 9/9 partidas con preguntas y opciones 2x2; 3/3 PWA offline con cuatro respuestas activas; pruebas sin errores JavaScript.
 - Protección: bancos, progreso, temporizadores, estadística, motores originales e instalaciones publicadas no modificados. Confirmación en Pixel físico y publicación quedan pendientes y precisan autorización separada.
 - Estado de entrega: rama local fix/arena-mobile-panel-20261026 (sin push ni merge).
+
+
+### 26/10/2026 · Cierre publicado · Portada Mobile First sin desbordamiento
+
+- Resultado: corrección geométrica de la portada integrada en main y publicada en GitHub Pages (commit de aplicación 2078504c6, CSS y service worker 2.0.2). Cloze se mantiene como referencia estable sin cambios.
+- Pruebas: 9/9 tamaños móviles (360×800, 390×844 y 412×915), con overflow-x: visible temporal para evitar falsos negativos por recorte; 15/15 archivos públicos coincidentes con SHA-256 local; 3/3 navegadores públicos abren una partida offline y registran una respuesta.
+- Protección: sin cambios en motor, banco, almacenamiento, claves de progreso ni identidad/scope de la PWA; no se borró caché ni se reinstaló la aplicación.
+- Resta verificación física de la PWA instalada en Pixel 10; las pruebas aquí son de navegador aislado. La corrección previa sigue en la etiqueta local safe-before-arena-mobile-overflow-20261026.
