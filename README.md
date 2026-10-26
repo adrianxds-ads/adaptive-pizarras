@@ -98,3 +98,12 @@ Evidencia reproducible en el entorno Windows: `C:\Users\adria\AppData\Local\Temp
 - Pruebas de entorno aislado: 9/9 pantallas móvil de tres apps en 360×800, 390×844 y 412×915; partida de 15 respuestas en cada juego; test específico de contrato Classroom 21 preguntas y 70 minutos restantes; arranque PWA offline y cuatro respuestas activas en los tres juegos. Manifiesto SHA-256 de CSS/JS verificado.
 - Intactos: bancos, contenidos, IDs, localStorage, IndexedDB, motores JS y referencias publicadas; Cloze estable no modificada.
 - Pendiente externo: aprobación visual en Pixel 10 físico; no se ha probado actualización de las instalaciones del dispositivo ni autorizado publicación.
+
+
+### 26/10/2026 · Cloze Arena v2 · publicación móvil verificada
+
+- **Resultado:** publicado en main por fast-forward; commit visual anterior, más corrección SHA-256/service worker v2.0.1. Estado verificado: 11928fd.
+- **QA pública:** GitHub Pages devuelve 5/5 archivos clave con SHA-256 exacto. Prueba real de página pública en navegador aislado: controlador PWA 2.0.1 activo, recursos del rediseño cargados, pantalla de partida con cuatro respuestas 2×2 y arranque offline superado sin errores JavaScript.
+- **Protección:** sin cambios en motores de preguntas, progreso, claves de localStorage/IndexedDB ni ámbito de la PWA. No se ha limpiado caché ni desinstalado la aplicación.
+- **Pendientes reales:** confirmar actualización y ergonomía en Pixel 10 físico. El icono aislado de cuatro colores mostrado por el usuario no coincide con los archivos icon.svg actuales ni se identificó en el DOM de los tres juegos; no se ha eliminado ni deben confundirse con la cuadrícula de respuestas.
+- **Restauración:** etiqueta local stable-before-hub-arena-v2-20261026 apunta a la versión anterior a la publicación.
