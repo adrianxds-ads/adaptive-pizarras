@@ -1,0 +1,234 @@
+/* Adrián Hub · Cloze Arena / Mission Deck v2 · shared Mobile First visual port.
+   SOURCE: Cloze published v2 (2026-10-26). Per-game timing, data, grading and storage untouched.
+   Deliberately scoped to data-arena-mobile-v2, so screens untouched until bridge boots.
+*/
+:root{
+ --ar-dark:#0b1015;--ar-panel:#141e26;--ar-elev:#1c2934;--ar-line:#2e404f;
+ --ar-white:#f1f6f9;--ar-muted:#9fb2c0;--ar-teal:#37bfb5;
+ --ar-play:#ebf1f5;--ar-ink:#13202b;--ar-soft:#526677;--ar-border:#cbd7e1;
+ --ar-a:#ba8264;--ar-b:#329688;--ar-c:#5b78c7;--ar-d:#9c67b0;
+ --ar-good:#10b981;--ar-bad:#ef4444;
+}
+html,body{max-width:100%;-webkit-font-smoothing:antialiased}
+html:root body[data-arena-mobile-v2] #startScreen:not(.hidden){
+ background:radial-gradient(120% 55% at 50% 0%,rgba(55,191,181,.14),transparent 60%),var(--ar-dark)!important;
+ color:var(--ar-white)!important;min-height:100dvh!important;padding:12px 12px calc(24px + env(safe-area-inset-bottom))!important;
+}
+html:root body[data-arena-mobile-v2] #startScreen>.panel{
+ box-sizing:border-box!important;background:var(--ar-panel)!important;border:1px solid var(--ar-line)!important;
+ border-top:4px solid var(--ar-teal)!important;border-radius:22px!important;padding:18px 16px 20px!important;
+ box-shadow:0 18px 42px #0006!important;max-width:540px!important;margin-inline:auto!important;
+}
+.ar-home-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px}
+.ar-brand{display:inline-flex;align-items:center;gap:7px;padding:5px 10px 5px 5px;border-radius:99px;
+ border:1px solid #37bfb559;background:#37bfb51c;color:#a6f4ed;font:800 11px/1.15 Roboto,system-ui,sans-serif;
+ letter-spacing:.045em;min-width:0}
+.ar-monogram{display:grid;place-items:center;flex-shrink:0;width:25px;height:25px;border-radius:50%;
+ background:var(--ar-teal);color:#06211f;font:900 11px Roboto,system-ui,sans-serif}
+.ar-brand-text{min-width:0;overflow-wrap:anywhere}
+.ar-audio{min-height:44px!important;padding:0 11px!important;border-radius:99px!important;
+ background:var(--ar-elev)!important;border:1px solid var(--ar-line)!important;color:white!important;
+ font:750 12px/1.2 Roboto,system-ui,sans-serif!important;white-space:nowrap!important}
+html:root body[data-arena-mobile-v2] #startScreen :is(.kicker,#startKicker){
+ font:750 12px/1.3 Roboto,system-ui,sans-serif!important;color:#8adcd5!important;
+ letter-spacing:.06em!important;text-align:center!important;margin:3px 0!important}
+html:root body[data-arena-mobile-v2] #startScreen .level-title-row{
+ justify-content:center!important;margin:0!important;gap:9px!important;flex-wrap:wrap!important}
+html:root body[data-arena-mobile-v2] #startScreen h1#startLevel{
+ font:900 clamp(33px,9.2vw,46px)/1.07 Roboto,system-ui,sans-serif!important;
+ color:#fff!important;letter-spacing:-.03em!important;margin:3px 0!important;text-align:center!important}
+html:root body[data-arena-mobile-v2] #startScreen .subtitle{
+ font:600 15px/1.35 Roboto,system-ui,sans-serif!important;color:#c1d0d8!important;
+ text-align:center!important;margin:5px 0!important}
+html:root body[data-arena-mobile-v2] #startScreen .meta{
+ font:600 12px/1.45 Roboto,system-ui,sans-serif!important;color:#b8c7d4!important;
+ text-align:center!important;margin:6px 0 13px!important}
+.ar-hero-snapshot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:11px 0 13px}
+.ar-snap{min-width:0;padding:10px 6px;border:1px solid var(--ar-line);border-radius:14px;background:var(--ar-elev);text-align:center}
+.ar-snap b{display:block;color:#fff;font:850 clamp(15px,5vw,20px)/1.15 Roboto,system-ui,sans-serif;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ar-snap span{display:block;margin:4px 0 0;color:var(--ar-muted);font:750 10px/1.2 Roboto,system-ui,sans-serif;letter-spacing:.03em;text-transform:uppercase}
+.ar-clock-info{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;
+ margin:10px 0;padding:8px 10px;border:1px solid var(--ar-line);border-radius:14px;background:var(--ar-elev);
+ color:#e7f2f5;font:750 12px/1.25 Roboto,system-ui,sans-serif}
+.ar-clock-info b{color:#89eae2}
+html:root body[data-arena-mobile-v2] #startScreen :is(#startBtn,#startClassBtn){
+ width:100%!important;min-height:60px!important;background:linear-gradient(180deg,#3fd0c6,#249e95)!important;
+ color:#041f1d!important;border:1px solid #6feae1!important;border-radius:16px!important;
+ font:900 18px/1.2 Roboto,system-ui,sans-serif!important;padding:12px 14px!important;
+ box-shadow:0 6px 20px #37bfb547!important;white-space:normal!important}
+html:root body[data-arena-mobile-v2] #startScreen :is(#startBtn,#startClassBtn):active{transform:scale(.985)}
+html:root body[data-arena-mobile-v2] #startScreen :is(.read-first-row,.read-first-mode){
+ margin:10px 0!important;padding:10px!important;background:var(--ar-elev)!important;
+ border:1px solid var(--ar-line)!important;border-radius:14px!important}
+html:root body[data-arena-mobile-v2] #startScreen .dashboard-menu{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-top:12px!important}
+html:root body[data-arena-mobile-v2] #startScreen .dashboard-menu .menu-btn{
+ min-height:68px!important;padding:11px!important;border-radius:14px!important;
+ background:var(--ar-elev)!important;border:1px solid var(--ar-line)!important;white-space:normal!important}
+html:root body[data-arena-mobile-v2] #startScreen :is(.home-details,.study-stats){
+ border-color:var(--ar-line)!important;border-radius:14px!important;overflow-wrap:anywhere}
+html:root body[data-arena-mobile-v2] #startScreen #classCard{
+ border-radius:16px!important;background:var(--ar-elev)!important;border:1px solid var(--ar-line)!important}
+html:root body[data-arena-mobile-v2] #startScreen #filters{
+ display:flex!important;flex-wrap:wrap!important;gap:7px!important}
+html:root body[data-arena-mobile-v2] #startScreen #filters button{min-height:44px!important;border-radius:12px!important}
+
+/* Clear game stage: source-of-truth timer engine stays untouched. */
+html:root body[data-arena-mobile-v2]:has(#gameScreen:not(.hidden)){background:var(--ar-play)!important}
+html:root body[data-arena-mobile-v2]:has(#gameScreen:not(.hidden))>.adrian-tools{display:none!important}
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden),
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden){
+ box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+ width:100%!important;max-width:650px!important;height:auto!important;min-height:100dvh!important;
+ padding:max(8px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom))!important;
+ margin-inline:auto!important;background:var(--ar-play)!important;color:var(--ar-ink)!important;
+ gap:10px!important;justify-content:flex-start!important}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden)>.top,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden)>.toprow,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden)>.focus-header,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden)>.segments,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden)>.quiz-game-footer{
+ display:none!important}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden)>#abortSessionBtn{
+ position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;
+ overflow:hidden!important;padding:0!important}
+.ar-arena-header{display:flex;flex-direction:column;gap:7px;width:100%;flex-shrink:0}
+.ar-hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:7px;min-height:44px}
+.ar-exit,.ar-hud-sound{appearance:none;min-height:44px!important;border:1px solid #b8c7d4!important;
+ background:#fff!important;color:#243746!important;border-radius:10px!important;
+ font:750 13px/1.2 Roboto,system-ui,sans-serif!important;padding:0 10px!important}
+.ar-hud-sound{min-width:44px!important;width:44px!important;padding:0!important;font-size:18px!important}
+.ar-center{display:flex;min-width:0;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}
+.ar-mode-badge{display:inline-flex;align-items:center;padding:5px 7px;border-radius:8px;background:#d1fae5;
+ color:#065f46;font:850 11px/1.15 Roboto,system-ui,sans-serif;text-align:center}
+.ar-count{font:900 15px Roboto,system-ui,sans-serif;color:var(--ar-ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ar-combo{display:inline-flex;gap:3px;align-items:center;padding:4px 7px;border-radius:99px;
+ background:#fef3c7;border:1px solid #f59e0b;color:#92400e;font:850 12px Roboto,system-ui,sans-serif}
+.ar-combo[hidden]{display:none!important}
+.ar-progress{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:3px;width:100%}
+.ar-progress>i{height:6px;border-radius:99px;background:#cbd5e1}
+.ar-progress>i.active{background:#0d9488;transform:scaleY(1.3)}
+.ar-progress>i.done{background:#10b981}
+.ar-timer{background:#fff;border:1px solid var(--ar-border);padding:8px 11px;border-radius:12px}
+.ar-timer-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.ar-timer-label{font:750 11px/1.25 Roboto,system-ui,sans-serif;color:var(--ar-soft);text-transform:uppercase;letter-spacing:.03em}
+.ar-timer-digits{font:900 18px Roboto,system-ui,sans-serif;color:var(--ar-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ar-timer-track{width:100%;height:9px;background:#e2e8f0;border-radius:99px;overflow:hidden;position:relative}
+.ar-timer-fill{height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,#0d9488,#37bfb5)}
+.ar-timer[data-preread="1"] .ar-timer-fill{background:linear-gradient(90deg,#2563eb,#60a5fa)}
+.ar-timer[data-urgent="1"]{background:#fef2f2;border-color:#fca5a5}
+.ar-timer[data-urgent="1"] .ar-timer-fill{background:linear-gradient(90deg,#dc2626,#ef4444)}
+.ar-timer[data-urgent="1"] .ar-timer-digits{color:#dc2626}
+.ar-timer[data-warn="1"] .ar-timer-fill{background:linear-gradient(90deg,#d97706,#f59e0b)}
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) .playfield,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) .playfield{
+ box-sizing:border-box!important;display:flex!important;flex:1 1 auto!important;flex-direction:column!important;
+ gap:10px!important;min-width:0!important;width:100%!important;margin:0!important;padding:0 0 10px!important;
+ justify-content:space-between!important;min-height:0!important;overflow:visible!important}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) .focus-stack{
+ display:flex!important;flex:1 1 auto!important;flex-direction:column!important;gap:10px!important;
+ justify-content:space-between!important;min-height:0!important;width:100%!important}
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) .prompt-card.question,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) .question{
+ box-sizing:border-box!important;min-height:0!important;height:auto!important;padding:14px 15px!important;
+ border:1.5px solid var(--ar-border)!important;border-radius:18px!important;background:#fff!important;
+ box-shadow:0 4px 14px #0f172a0d!important;display:flex!important;flex-direction:column!important;
+ justify-content:center!important;margin:0!important;flex-shrink:0!important}
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) .prompt-text#questionText,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #questionText{
+ font:600 clamp(18px,4.7vw,22px)/1.42 Roboto,"Segoe UI",system-ui,sans-serif!important;
+ color:var(--ar-ink)!important;text-align:left!important;margin:0!important;
+ overflow-wrap:anywhere!important;max-width:100%!important}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) .answer-stage{
+ box-sizing:border-box!important;min-width:0!important;width:100%!important;
+ flex:0 0 auto!important;margin-top:auto!important}
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers#answers.options-list,
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers#answers,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers#answers{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:9px!important;width:100%!important;max-width:100%!important;min-width:0!important;
+ flex-direction:unset!important;margin:0!important;padding:0!important;position:relative!important}
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers#answers>button.answer.option-btn,
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers#answers>button.answer,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers#answers>button.answer{
+ box-sizing:border-box!important;min-width:0!important;width:100%!important;
+ min-height:clamp(81px,12.5dvh,112px)!important;height:auto!important;
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+ justify-content:space-between!important;gap:7px!important;padding:11px!important;
+ background:#fff!important;border:2px solid var(--ar-edge,var(--ar-border))!important;
+ border-radius:15px!important;box-shadow:0 2px 6px #0f172a0d!important;
+ font:700 clamp(16px,4.3vw,20px)/1.23 Roboto,system-ui,sans-serif!important;
+ color:var(--ar-ink)!important;text-align:left!important;
+ white-space:normal!important;overflow-wrap:anywhere!important;opacity:1!important}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers>button.answer:nth-child(1){--ar-edge:var(--ar-a)}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers>button.answer:nth-child(2){--ar-edge:var(--ar-b)}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers>button.answer:nth-child(3){--ar-edge:var(--ar-c)}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers>button.answer:nth-child(4){--ar-edge:var(--ar-d)}
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers>button.good,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers>button:is(.good,.is-correct){
+ background:#dcfce7!important;border-color:var(--ar-good)!important}
+html:root body[data-arena-mobile-v2][data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen:not(.hidden) #answers>button.bad,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers>button:is(.bad,.is-wrong){
+ background:#fee2e2!important;border-color:var(--ar-bad)!important}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) :is(.timer-footer,.prompt-meta,.playfield>.progress-track,.playfield>.segments,#focusQuestionCounter){
+ display:none!important}
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #feedback:not(:empty){
+ box-sizing:border-box!important;display:block!important;width:100%!important;
+ min-height:0!important;max-height:none!important;margin:9px 0 0!important;
+ background:#ecfdf5!important;color:var(--ar-ink)!important;
+ border:1.5px solid var(--ar-border)!important;border-radius:13px!important;
+ padding:10px 12px!important;font:600 13px/1.35 Roboto,system-ui,sans-serif!important;
+ overflow-wrap:anywhere!important;position:static!important}
+/* Keep the original modal and legitimate pause transitions operational. */
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #focusPausePanel:not([hidden]){z-index:9999!important}
+html:root body[data-arena-mobile-v2] #endScreen:not(.hidden){
+ background:var(--ar-dark)!important;padding:12px 12px calc(28px + env(safe-area-inset-bottom))!important}
+html:root body[data-arena-mobile-v2] #endScreen>.panel{
+ box-sizing:border-box!important;max-width:540px!important;margin-inline:auto!important;
+ background:var(--ar-panel)!important;border:1px solid var(--ar-line)!important;border-top:4px solid var(--ar-teal)!important;
+ border-radius:22px!important;padding:20px 16px!important}
+html:root body[data-arena-mobile-v2] #endScreen #endScore{
+ font:900 clamp(40px,11vw,55px)/1 Roboto,system-ui,sans-serif!important;color:#fff!important}
+html:root body[data-arena-mobile-v2] #endScreen :is(#endSub,#endLine){
+ display:block!important;color:#e5eff7!important;line-height:1.5!important}
+html:root body[data-arena-mobile-v2] #endScreen .end-quick-actions,
+html:root body[data-arena-mobile-v2] #endScreen>.panel>.actions{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;
+ margin:14px 0!important}
+html:root body[data-arena-mobile-v2] #endScreen :is(#topContinueBtn,#continueBtn){
+ grid-column:1/-1!important;min-height:56px!important;border:1px solid #6feae1!important;
+ background:linear-gradient(180deg,#3fd0c6,#249e95)!important;color:#041f1d!important;
+ font:900 17px/1.2 Roboto,system-ui,sans-serif!important;border-radius:14px!important}
+.ar-end-fold{margin-top:14px;border:1px solid var(--ar-line);background:var(--ar-elev);
+ border-radius:16px;padding:0 14px;overflow:visible}
+.ar-end-fold>summary{cursor:pointer;display:flex;align-items:center;min-height:52px;
+ font:800 14px/1.3 Roboto,system-ui,sans-serif;color:#fff;list-style:none}
+.ar-end-fold[open]{padding-bottom:14px}
+@media(max-width:375px){
+ .ar-brand{font-size:10px}.ar-mode-badge{font-size:10px;padding:4px}
+ .ar-count{font-size:13px}
+ html:root body[data-arena-mobile-v2] #gameScreen:not(.hidden){padding-inline:8px!important}
+ html:root body[data-arena-mobile-v2] #gameScreen:not(.hidden) .question{padding:12px!important}
+}
+@media(prefers-reduced-motion:reduce){.ar-timer-fill{transition:none!important}}
+
+
+/* Legacy Grammar progress inside focus-stack, not the Arena HUD, must not duplicate it. */
+html:root body[data-arena-mobile-v2="grammar"] #gameScreen#gameScreen:not(.hidden) .focus-stack>.progress-track,
+html:root body[data-arena-mobile-v2="grammar"] #gameScreen#gameScreen:not(.hidden) .playfield .progress-track{
+ display:none!important;
+}
+/* Preserve legacy pre-read state even when our 2×2 layout is applied. */
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #answers.read-first-hidden{
+ opacity:0!important;pointer-events:none!important;
+}
+
+
+/* Medal badges retain their full circular shape on result screens. */
+html:root body[data-arena-mobile-v2] #endScreen .medal-summary-host,
+html:root body[data-arena-mobile-v2] #endScreen .medal-summary-host :is(.ad-medal-stat,.ad-medal-strip){
+  overflow:visible!important;max-height:none!important;min-height:0!important;
+}
+html:root body[data-arena-mobile-v2] #endScreen .medal-summary-host{
+  height:auto!important;padding:8px 0!important;margin:6px 0 10px!important;
+}

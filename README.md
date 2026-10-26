@@ -77,3 +77,14 @@ Evidencia reproducible en el entorno Windows: `C:\Users\adria\AppData\Local\Temp
 - **Prueba offline física:** se simuló la pérdida de conexión solo en la pestaña mediante Chrome DevTools (sin apagar Wi‑Fi ni datos móviles). Recarga sin red correcta, interfaz cargada, service worker activo y mismos contadores antes/después. Después se restauró la red de la pestaña y se verificó el arranque online (**PASS**).
 - **Protección:** antes de la primera recarga se verificó una copia de seguridad local del almacenamiento. La posterior compresión GZIP de las claves de estudio se decodificó y comparó con los contadores e historiales originales; Classroom también se comprobó con registro IndexedDB respaldado y SHA-256 válido. Estas copias permanecen solo en el ordenador autorizado, fuera de Git; no se han publicado los contenidos de las copias locales.
 - **Resultado:** versión publicada y funcionamiento **comprobados en el dispositivo objetivo**. Se devolvió ChatGPT al primer plano del Pixel y se retiró el túnel temporal de depuración. Sin bloqueos técnicos pendientes de esta reparación.
+
+
+### 26/10/2026 · Cloze Arena v2 · adaptación Mobile First (rama no publicada)
+
+- **Referencia:** Cloze Arena & Mission Deck v2 publicada (GitHub b2-multiple-choice-cloze, main 25fdd85); diseño aprobado, sin modificar la referencia.
+- **Integración:** hub-arena-mobile-v2.css y hub-arena-mobile-v2.js idénticos en Grammar/Phrasal/Classroom. Portada OLED/teal, estadísticas breves, HUD único, 15 segmentos, temporizador visual y opciones táctiles 2×2; resultados con detalles secundarios plegables.
+- **Contratos conservados:** los motores originales, puntuación, bancos de preguntas, almacenamiento, sincronización y reglas de tiempo (15 segundos habitualmente y excepciones propias) no se modificaron. El nuevo HUD refleja los valores de los temporizadores existentes; no crea otro cronómetro.
+- **PWA:** index.html y service-worker.js incorporan los nuevos recursos y build-assets.js incluye huellas SHA-256 y nueva identidad de caché.
+- **QA verificadas en Edge temporal:** nueve de nueve combinaciones de 360x800, 390x844 y 412x915 para las tres apps; sesiones de 15 respuestas completas en las tres; pausa Grammar validada. Evidencias locales en la carpeta QA del espacio de revisión.
+- **Pendiente:** el arranque de partida offline no superó la prueba consistente en el perfil aislado. Sí se comprobó la caché y carga de la portada sin red. Resolver antes de publicar y comprobar en Pixel 10 la experiencia PWA real.
+- **Estado:** exclusivamente rama local feature/cloze-arena-mobile-20261026, sin push, merge ni publicación.
