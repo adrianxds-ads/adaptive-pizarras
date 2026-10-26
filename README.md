@@ -107,3 +107,14 @@ Evidencia reproducible en el entorno Windows: `C:\Users\adria\AppData\Local\Temp
 - **Protección:** sin cambios en motores de preguntas, progreso, claves de localStorage/IndexedDB ni ámbito de la PWA. No se ha limpiado caché ni desinstalado la aplicación.
 - **Pendientes reales:** confirmar actualización y ergonomía en Pixel 10 físico. El icono aislado de cuatro colores mostrado por el usuario no coincide con los archivos icon.svg actuales ni se identificó en el DOM de los tres juegos; no se ha eliminado ni deben confundirse con la cuadrícula de respuestas.
 - **Restauración:** etiqueta local stable-before-hub-arena-v2-20261026 apunta a la versión anterior a la publicación.
+
+
+### 26/10/2026 · Corrección del desbordamiento móvil · Mission Deck
+
+- Incidencia reproducida en Pixel 10 (captura del usuario): la portada de Grammar Quest tenía el panel de 540 px dentro de un viewport de 390 px, aunque html aplicaba overflow-x: clip. En navegador se midió #startScreen>.panel a x=12..552 px.
+- Reparación en la capa compartida existente, sin apilar hojas CSS: width: 100%, max-width: min(540px,100%), min-width: 0, contención de flex/grid y texto de portada. En móviles estrechos, métricas 2+1 para respetar el ajuste accesible de 16 px que la aplicación aplica a algunas etiquetas. En pantallas anchas conserva tres columnas.
+- No se aplicó literalmente el parche hipotético de Gemini para data-nucleo-game: estos juegos usan data-arena-mobile-v2. No se modifica Cloze, que sigue estable.
+- CSS compartido aplicado en Grammar, Phrasal y Classroom. Se renueva la hoja ?v=2.0.2, el service worker ?v=2.0.2, la precaché y el manifiesto SHA-256.
+- Validación aislada en Edge/Chromium con 360x800, 390x844, 412x915: 9/9 portadas geométricamente correctas incluso haciendo overflow-x: visible temporalmente; 9/9 partidas con preguntas y opciones 2x2; 3/3 PWA offline con cuatro respuestas activas; pruebas sin errores JavaScript.
+- Protección: bancos, progreso, temporizadores, estadística, motores originales e instalaciones publicadas no modificados. Confirmación en Pixel físico y publicación quedan pendientes y precisan autorización separada.
+- Estado de entrega: rama local fix/arena-mobile-panel-20261026 (sin push ni merge).

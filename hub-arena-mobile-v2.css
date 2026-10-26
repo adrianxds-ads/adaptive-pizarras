@@ -17,12 +17,12 @@ html:root body[data-arena-mobile-v2] #startScreen:not(.hidden){
 html:root body[data-arena-mobile-v2] #startScreen>.panel{
  box-sizing:border-box!important;background:var(--ar-panel)!important;border:1px solid var(--ar-line)!important;
  border-top:4px solid var(--ar-teal)!important;border-radius:22px!important;padding:18px 16px 20px!important;
- box-shadow:0 18px 42px #0006!important;max-width:540px!important;margin-inline:auto!important;
+ box-shadow:0 18px 42px #0006!important;width:100%!important;max-width:min(540px,100%)!important;min-width:0!important;margin-inline:auto!important;
 }
-.ar-home-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px}
+.ar-home-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 0 12px;width:100%;min-width:0}
 .ar-brand{display:inline-flex;align-items:center;gap:7px;padding:5px 10px 5px 5px;border-radius:99px;
  border:1px solid #37bfb559;background:#37bfb51c;color:#a6f4ed;font:800 11px/1.15 Roboto,system-ui,sans-serif;
- letter-spacing:.045em;min-width:0}
+ letter-spacing:.045em;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .ar-monogram{display:grid;place-items:center;flex-shrink:0;width:25px;height:25px;border-radius:50%;
  background:var(--ar-teal);color:#06211f;font:900 11px Roboto,system-ui,sans-serif}
 .ar-brand-text{min-width:0;overflow-wrap:anywhere}
@@ -44,12 +44,17 @@ html:root body[data-arena-mobile-v2] #startScreen .meta{
  font:600 12px/1.45 Roboto,system-ui,sans-serif!important;color:#b8c7d4!important;
  text-align:center!important;margin:6px 0 13px!important}
 .ar-hero-snapshot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:11px 0 13px}
-.ar-snap{min-width:0;padding:10px 6px;border:1px solid var(--ar-line);border-radius:14px;background:var(--ar-elev);text-align:center}
+/* Respect accessible text scaling without cutting KPI labels on narrow mobile screens. */
+@media(max-width:480px){
+ .ar-hero-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ar-hero-snapshot>.ar-snap:last-child{grid-column:1/-1}
+}
+.ar-snap{min-width:0;max-width:100%;padding:10px 6px;border:1px solid var(--ar-line);border-radius:14px;background:var(--ar-elev);text-align:center}
 .ar-snap b{display:block;color:#fff;font:850 clamp(15px,5vw,20px)/1.15 Roboto,system-ui,sans-serif;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .ar-snap span{display:block;margin:4px 0 0;color:var(--ar-muted);font:750 10px/1.2 Roboto,system-ui,sans-serif;letter-spacing:.03em;text-transform:uppercase}
 .ar-clock-info{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;
  margin:10px 0;padding:8px 10px;border:1px solid var(--ar-line);border-radius:14px;background:var(--ar-elev);
- color:#e7f2f5;font:750 12px/1.25 Roboto,system-ui,sans-serif}
+ color:#e7f2f5;font:750 12px/1.25 Roboto,system-ui,sans-serif;flex-wrap:wrap;min-width:0;max-width:100%;text-align:center}
 .ar-clock-info b{color:#89eae2}
 html:root body[data-arena-mobile-v2] #startScreen :is(#startBtn,#startClassBtn){
  width:100%!important;min-height:60px!important;background:linear-gradient(180deg,#3fd0c6,#249e95)!important;
@@ -61,9 +66,9 @@ html:root body[data-arena-mobile-v2] #startScreen :is(.read-first-row,.read-firs
  margin:10px 0!important;padding:10px!important;background:var(--ar-elev)!important;
  border:1px solid var(--ar-line)!important;border-radius:14px!important}
 html:root body[data-arena-mobile-v2] #startScreen .dashboard-menu{
- display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-top:12px!important}
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-top:12px!important;width:100%!important;min-width:0!important;max-width:100%!important}
 html:root body[data-arena-mobile-v2] #startScreen .dashboard-menu .menu-btn{
- min-height:68px!important;padding:11px!important;border-radius:14px!important;
+ min-height:68px!important;padding:11px!important;border-radius:14px!important;width:100%!important;min-width:0!important;max-width:100%!important;overflow-wrap:break-word!important;
  background:var(--ar-elev)!important;border:1px solid var(--ar-line)!important;white-space:normal!important}
 html:root body[data-arena-mobile-v2] #startScreen :is(.home-details,.study-stats){
  border-color:var(--ar-line)!important;border-radius:14px!important;overflow-wrap:anywhere}
@@ -72,6 +77,19 @@ html:root body[data-arena-mobile-v2] #startScreen #classCard{
 html:root body[data-arena-mobile-v2] #startScreen #filters{
  display:flex!important;flex-wrap:wrap!important;gap:7px!important}
 html:root body[data-arena-mobile-v2] #startScreen #filters button{min-height:44px!important;border-radius:12px!important}
+
+/* Mission Deck: guard flex/grid children against intrinsic-width overflow. */
+html:root body[data-arena-mobile-v2] #startScreen>.panel>*{
+ min-width:0;max-width:100%;box-sizing:border-box;
+}
+html:root body[data-arena-mobile-v2] #startScreen :is(#startKicker,.kicker,.subtitle,.meta){
+ min-width:0;max-width:100%;white-space:normal!important;overflow-wrap:break-word!important;
+}
+html:root body[data-arena-mobile-v2] #startScreen .ar-hero-snapshot{width:100%;min-width:0}
+html:root body[data-arena-mobile-v2] #startScreen .ar-snap{overflow-wrap:anywhere}
+html:root body[data-arena-mobile-v2] #startScreen :is(.read-first-row,.read-first-mode) :is(button,small,span,p){
+ max-width:100%;min-width:0;white-space:normal;overflow-wrap:break-word;
+}
 
 /* Clear game stage: source-of-truth timer engine stays untouched. */
 html:root body[data-arena-mobile-v2]:has(#gameScreen:not(.hidden)){background:var(--ar-play)!important}
