@@ -137,3 +137,7 @@ Evidencia reproducible en el entorno Windows: `C:\Users\adria\AppData\Local\Temp
 - Los recursos modificados tienen nuevas consultas `?v=arcade-20261028`; manifiesto SHA-256 `build-assets.js` regenerado y caché PWA nueva.
 - QA en PC/Edge: 4/4 arranques y avance automático con error, 4/4 con acierto, 4/4 activación/silencio/reactivación del audio (medición de presencia, no calidad acústica), 4/4 arranques offline, 12/12 layouts a 360×800, 390×844 y 412×915; movimiento de tarjetas tras respuesta = 0 px en las 4 pruebas base; `node --check` y `git diff --check` correctos.
 - Evidencias en `C:\Users\adria\Documents\HUB_ARCADE_REFINEMENT_20261028\QA`. Pendiente validación perceptiva en Pixel 10 y autorización expresa antes de publicar.
+
+### 28-10-2026 · Arcade · corrección de estabilidad del aviso de guardado
+
+Al comprobar Classroom en GitHub Pages se observó que `#classroomPersistenceStatus` ocupaba temporalmente 48 px de flujo durante un guardado pendiente; al desaparecer desplazaba todo el juego. Corregido en `hub-arena-mobile-v2.css`: aviso fijo fuera del flujo; los estados de guardado normales se ocultan durante la partida y los errores de persistencia permanecen visibles. CSS versionado `arcade-20261028-layout1` y SHA-256 de PWA actualizados. Dos ensayos con acierto/error: `deltaY=0 px`; simulación visual de aviso de error: visible y fijo en la parte superior. No altera los contratos, validaciones ni escrituras de Classroom.
