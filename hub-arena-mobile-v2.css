@@ -287,3 +287,14 @@ html:root body[data-arena-mobile-v2="classroom"] .ar-count{font-size:13px}
 html:root body[data-arena-mobile-v2="classroom"] #gameScreen:not(.hidden) .ar-progress[aria-valuemax]{
  max-width:100%;min-width:0;
 }
+
+/* Arcade: reserve a permanent, compact scoreboard without layout jumps. */
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #feedback,
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #feedback:not(:empty),
+html:root body[data-arena-mobile-v2] #gameScreen#gameScreen:not(.hidden) #feedback.ar-arcade-tally{
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ height:30px!important;min-height:30px!important;max-height:30px!important;overflow:hidden!important;
+ margin:5px 0 0!important;padding:0 6px!important;background:transparent!important;border:0!important;
+ border-radius:0!important;box-shadow:none!important;font:650 15px/1.3 Roboto,system-ui,sans-serif!important;
+ color:var(--ar-ink)!important;white-space:nowrap!important;letter-spacing:.02em!important;
+}

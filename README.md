@@ -126,3 +126,14 @@ Evidencia reproducible en el entorno Windows: `C:\Users\adria\AppData\Local\Temp
 - Pruebas: 9/9 tamaños móviles (360×800, 390×844 y 412×915), con overflow-x: visible temporal para evitar falsos negativos por recorte; 15/15 archivos públicos coincidentes con SHA-256 local; 3/3 navegadores públicos abren una partida offline y registran una respuesta.
 - Protección: sin cambios en motor, banco, almacenamiento, claves de progreso ni identidad/scope de la PWA; no se borró caché ni se reinstaló la aplicación.
 - Resta verificación física de la PWA instalada en Pixel 10; las pruebas aquí son de navegador aislado. La corrección previa sigue en la etiqueta local safe-before-arena-mobile-overflow-20261026.
+
+
+### 2026-10-28 · Arcade · candidato aislado (Gemini → Docs → Hub)
+
+- Rama: `feature/arcade-flow-20261028`, derivada del `main` estable. Sin despliegue, merge ni cambio en los datos del usuario.
+- Se acorta el feedback temporizado a 320/420 ms + 60 ms de relevo, sin botones de avance; se elimina `translateY(6px)` y se impide insertar explicaciones sobre el enunciado durante las respuestas.
+- Marcador compacto fijo `✓ aciertos · ✕ fallos` de 30 px; segmentos completados uniformes; explicaciones y registros conservados para la revisión al final.
+- Recuperado tic por segundo, urgencia al acabar, señales de respuesta diferenciadas, silencio persistente, vibración desactivada por defecto. Se mantienen los relojes y reglas de puntuación originales.
+- Los recursos modificados tienen nuevas consultas `?v=arcade-20261028`; manifiesto SHA-256 `build-assets.js` regenerado y caché PWA nueva.
+- QA en PC/Edge: 4/4 arranques y avance automático con error, 4/4 con acierto, 4/4 activación/silencio/reactivación del audio (medición de presencia, no calidad acústica), 4/4 arranques offline, 12/12 layouts a 360×800, 390×844 y 412×915; movimiento de tarjetas tras respuesta = 0 px en las 4 pruebas base; `node --check` y `git diff --check` correctos.
+- Evidencias en `C:\Users\adria\Documents\HUB_ARCADE_REFINEMENT_20261028\QA`. Pendiente validación perceptiva en Pixel 10 y autorización expresa antes de publicar.

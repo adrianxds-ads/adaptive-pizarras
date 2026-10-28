@@ -10,7 +10,7 @@ html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScree
  transition:opacity 150ms cubic-bezier(.22,1,.36,1),transform 150ms cubic-bezier(.22,1,.36,1)!important;
 }
 html:root body[data-quiz-ergonomics] #gameScreen#gameScreen.hidden{display:none!important}
-html:root body[data-quiz-ergonomics] #gameScreen#gameScreen.is-transitioning{opacity:0;transform:translateY(6px)!important;pointer-events:none}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen.is-transitioning{opacity:1;transform:none!important;pointer-events:none}
 html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen .playfield{width:100%;max-width:640px;margin:0 auto!important;display:flex;flex-direction:column;gap:16px;padding:0!important;flex:0 0 auto!important;transform:none!important}
 html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .focus-stack{width:100%;max-width:640px;display:flex;flex-direction:column;gap:16px;transform:none!important;margin:0!important}
 html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .answer-stage{width:100%;height:auto!important;min-height:0!important;display:flex;flex-direction:column;gap:16px;position:relative!important;transform:none!important}
@@ -19,8 +19,8 @@ html:root body[data-quiz-ergonomics] #gameScreen#gameScreen :is(.integrated-prog
 html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-track{display:grid;gap:5px;padding:4px 0;margin:0!important;width:100%}
 html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill{height:6px;border-radius:999px;background:#CBD5E1;transition:background-color 250ms ease,transform 200ms ease}
 html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill.is-current{background:var(--accent-blue);transform:scaleY(1.3)}
-html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill.is-correct{background:var(--correct-green)}
-html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill.is-wrong{background:var(--wrong-red)}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill.is-correct{background:#32A48F}
+html:root body[data-quiz-ergonomics] #gameScreen#gameScreen .progress-pill.is-wrong{background:#32A48F}
 html:root body[data-quiz-ergonomics][data-quiz-ergonomics] #gameScreen#gameScreen .prompt-card{
  box-sizing:border-box;background:var(--card-bg)!important;border-radius:16px!important;padding:16px 20px!important;
  box-shadow:0 2px 8px rgba(15,23,42,.05)!important;border:1px solid #E2E8F0!important;

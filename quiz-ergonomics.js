@@ -1,7 +1,7 @@
 /* Quiz ergonomics 1.0.0. Presentation and cancellable advance; no grading/storage. */
 (()=>{
 'use strict';
-const CONFIG=Object.freeze({TIME_PER_QUESTION:15000,DWELL_TIME_CORRECT:850,DWELL_TIME_WRONG:1850,TRANSITION_DURATION:150});
+const CONFIG=Object.freeze({TIME_PER_QUESTION:15000,DWELL_TIME_CORRECT:320,DWELL_TIME_WRONG:420,TRANSITION_DURATION:60});
 class QuizFlowController{
  constructor(){this.epoch=0;this.pending=new Set();this.stage=null;}
  cancel(){

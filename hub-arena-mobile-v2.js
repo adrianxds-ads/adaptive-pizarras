@@ -7,7 +7,7 @@
  const apps={
   "adaptive-english":{name:"GRAMMAR QUEST",short:"GQ",kind:"grammar",mode:"GRAMMAR",originalPause:"focusPauseBtn",sound:true},
   "adaptive-phrasal-verbs":{name:"PHRASAL SPRINT",short:"PS",kind:"phrasal",mode:"PHRASAL",originalPause:"abortSessionBtn",sound:true},
-  "adaptive-pizarras":{name:"CLASSROOM B2",short:"CB",kind:"classroom",mode:"CLASSROOM",originalPause:"abortBtn",sound:false}
+  "adaptive-pizarras":{name:"CLASSROOM B2",short:"CB",kind:"classroom",mode:"CLASSROOM",originalPause:"abortBtn",sound:true}
  };
  const app=apps[slug];
  if(!app)return;
@@ -26,11 +26,11 @@
   const brand=add(top,"div","ar-brand");
   add(brand,"span","ar-monogram",app.short);
   add(brand,"span","ar-brand-text",app.name+" · B2");
-  if(app.sound&&id("soundBtn")){
+  if(app.sound&&(id("soundBtn")||app.kind==="classroom")){
    const btn=add(top,"button","ar-audio","🔊 Audio");
    btn.type="button";btn.id="arHomeAudio";
    btn.setAttribute("aria-label","Activar o silenciar sonido");
-   btn.addEventListener("click",()=>{id("soundBtn")?.click();syncSound()});
+   btn.addEventListener("click",()=>{(app.kind==="classroom"?window.HubClassroomAudio?.toggle():id("soundBtn")?.click());syncSound()});
   }
   panel.prepend(top);
   const heading=panel.querySelector(".meta")||id("startMeta")||panel.querySelector(".subtitle");
@@ -62,6 +62,7 @@
  function syncSound(){
   if(!app.sound)return;
   const orig=id("soundBtn"),home=id("arHomeAudio"),hud=id("arSound");
+  if(app.kind==="classroom"){const on=window.HubClassroomAudio?.isOn?.()!==false;if(home)home.textContent=on?"🔊 Sonido sí":"🔇 Silencio";if(hud)hud.textContent=on?"🔊":"🔇";return;}
   if(!orig)return;
   const raw=text(orig)+" "+(orig.getAttribute("aria-label")||"");
   let on=raw.includes("🔊")||/sound on|sonido activado|desactivar sonido/i.test(raw);
@@ -84,7 +85,7 @@
   if(app.sound){
    const sound=add(top,"button","ar-hud-sound","🔊");
    sound.type="button";sound.id="arSound";sound.setAttribute("aria-label","Activar o silenciar sonido");
-   sound.addEventListener("click",()=>{id("soundBtn")?.click();syncSound()});
+   sound.addEventListener("click",()=>{(app.kind==="classroom"?window.HubClassroomAudio?.toggle():id("soundBtn")?.click());syncSound()});
   }else{
    // Keep HUD's third column balanced without introducing a nonfunctional sound control.
    add(top,"span","ar-hud-side","15 s").id="arClassState";
@@ -212,27 +213,19 @@
  }
 
  function syncAnswerFeedback(registered){
-  const fb=id("feedback"),answers=id("answers");
-  if(!fb||!answers)return;
-  // Classroom owns its own explanation and feedback; never replace it.
-  if(app.kind==="classroom")return;
-  if(!registered){
-   if(fb.dataset.arSynthetic==="true"){fb.replaceChildren();fb.classList.remove("ar-synthetic-feedback");delete fb.dataset.arSynthetic}
-   return;
-  }
-  if(text(fb))return; // preserve any genuine engine output
-  const correct=answers.querySelector("button.answer.good,button.answer.is-correct");
-  const wrong=answers.querySelector("button.answer.bad,button.answer.is-wrong");
-  if(!correct)return;
-  const chosen=wrong?"incorrecta":"correcta";
-  // Same official answer from the existing rendered buttons; no scoring or grammar invented.
-  const label=correct.querySelector(".option-label")?.textContent.trim()
-     ||correct.textContent.replace(/^\s*[A-D]\s*/,"").trim();
-  fb.dataset.arSynthetic="true";
-  fb.classList.add("ar-synthetic-feedback");
-  const heading=add(fb,"strong","",chosen==="correcta"?"✓ Respuesta correcta":"✕ Revisa la respuesta");
-  if(chosen!=="correcta"){add(fb,"span",""," · ");add(fb,"span","","Clave: "+label)}
+  const fb=id("feedback"),s=getSession();
+  if(!fb||!s)return;
+  // Read-only session tally; do not infer progress from option colors.
+  const records=Array.isArray(s.records)?s.records:[];
+  const hits=Number(s.correct)||0;
+  const attempts=records.length||(Array.isArray(s.times)?s.times.length:0);
+  const misses=Math.max(0,attempts-hits);
+  const value="✓ "+hits+"   ✕ "+misses;
+  if(fb.textContent!==value)fb.textContent=value;
+  fb.classList.add("ar-arcade-tally");
+  fb.setAttribute("aria-label",hits+" aciertos y "+misses+" errores");
  }
+
  function boot(){
   const stage=id("gameScreen"),home=id("startScreen"),end=id("endScreen");
   if(!stage||!home||!end)return;

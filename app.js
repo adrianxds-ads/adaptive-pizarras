@@ -18,6 +18,11 @@ const FILTER_LABELS={Adaptive:'Adaptativo',Speaking:'Speaking',Connectors:'Conec
 let activeFilter='Adaptive';
 let state=null,session=null,current=null,timerHandle=null,classHandle=null,revealHandle=null,milestoneHideHandle=null,deadline=0,locked=false,audioCtx=null,currentPreReadMs=0;
 let revealEarlyOnTap=null;
+let classroomSoundOn=(()=>{try{return localStorage.getItem('adrian_hub_sound_v1')!=='0';}catch(e){return true;}})();
+window.HubClassroomAudio={
+ isOn:()=>classroomSoundOn,
+ toggle:()=>{classroomSoundOn=!classroomSoundOn;try{localStorage.setItem('adrian_hub_sound_v1',classroomSoundOn?'1':'0');}catch(e){}if(classroomSoundOn)tone(760,.055,.014);return classroomSoundOn;}
+};
 let readFirstMode=(()=>{try{return localStorage.getItem(READ_FIRST_KEY)!=='0';}catch(e){return true;}})();
 
 function validQuestion(q){return !!q&&typeof q.id==='string'&&typeof q.category==='string'&&typeof q.concept==='string'&&typeof q.prompt==='string'&&typeof q.correct==='string'&&Array.isArray(q.options)&&q.options.length===4&&new Set(q.options.map(x=>String(x).trim().toLowerCase())).size===4&&q.options.includes(q.correct);}
@@ -263,8 +268,14 @@ function flashClassMilestone(text,persist=false){const el=$('classClock');clearT
 function updateHud(){const study=session.type==='study';$('qMode').textContent=study?'CONTRACT':'QUICK';$('qIndex').textContent=session.questionCount+1;$('qTotal').textContent=study?'CLASS':'/ 15';$('pointsHud').textContent=session.points+' PTS';$('comboHud').textContent='COMBO ×'+session.combo;$('levelHud').textContent=study?'EN CURSO':`L${state.level}`;$('abortBtn').textContent=study?'INTERRUMPIR':'SALIR';if(!study){$('classClock').classList.add('hidden');$('classClock').textContent='';}}
 function startClassClock(){clearInterval(classHandle);clearTimeout(milestoneHideHandle);$('classClock').classList.add('hidden');if(session.type!=='study')return;updateClassClock();classHandle=setInterval(updateClassClock,250);}
 function updateClassClock(){if(!session||session.type!=='study'||session.finished)return;const elapsed=Date.now()-session.startedAt,total=session.durationSec*1000,left=Math.max(0,session.endsAt-Date.now()),p=total?clamp(elapsed/total,0,1):0;if(p>=.5&&!session.milestonesShown.half){session.milestonesShown.half=true;flashClassMilestone('MITAD DE LA CLASE');}if(p>=.85&&!session.milestonesShown.final){session.milestonesShown.final=true;flashClassMilestone('ÚLTIMO TRAMO');}if(left<=0&&!session.timeUp){session.timeUp=true;flashClassMilestone('CONTRATO CUMPLIDO',true);save();}if(left<=0&&session.questionCount>=session.minQuestions&&!locked)return finishSession(false);}
-function startAnswerTimer(){deadline=Date.now()+TIME_LIMIT*1000;tick();clearInterval(timerHandle);timerHandle=guardedQuizInterval(tick,50);}
-function tick(){const left=Math.max(0,deadline-Date.now()),sec=left/1000,pct=left/(TIME_LIMIT*1000)*100;$('timerText').textContent=sec.toFixed(1);updateSegments(sec);$('timer').style.setProperty('--p',pct+'%');$('timer').classList.toggle('urgent',sec<=3);if(left<=0){clearInterval(timerHandle);answer(null,null,true);}}
+function startAnswerTimer(){deadline=Date.now()+TIME_LIMIT*1000;lastClassTick=TIME_LIMIT+1;lastClassUrgent=-1;tick();clearInterval(timerHandle);timerHandle=guardedQuizInterval(tick,50);}
+let lastClassTick=TIME_LIMIT+1,lastClassUrgent=-1;
+function tick(){const left=Math.max(0,deadline-Date.now()),sec=left/1000,pct=left/(TIME_LIMIT*1000)*100;
+ if(!locked&&session?.type==='quick'){
+  const shown=Math.ceil(sec);
+  if(sec>2&&shown<lastClassTick&&shown>0){lastClassTick=shown;tone(shown<=5?(shown%2?1500:1260):(shown%2?1080:960),.025,shown<=5?.014:.009);}
+  if(sec<=2&&sec>0){const beat=Math.floor((2-sec)*4);if(beat!==lastClassUrgent){lastClassUrgent=beat;tone(beat%2?1460:1660,.03,.013);}}
+ }$('timerText').textContent=sec.toFixed(1);updateSegments(sec);$('timer').style.setProperty('--p',pct+'%');$('timer').classList.toggle('urgent',sec<=3);if(left<=0){clearInterval(timerHandle);answer(null,null,true);}}
 function renderQuestion(){
   quizFlow.begin();
   QuizLearning.clear();
@@ -300,7 +311,7 @@ function renderQuestion(){
    }else{revealEarlyOnTap=null;NucleoReadFirstSkip.hide();host.classList.remove('read-first-hidden');[...host.children].forEach(b=>b.disabled=false);startAnswerTimer();}
 }
 function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}
-function tone(freq,dur=.07,gain=.015){try{ensureAudio();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=freq;o.type='sine';g.gain.value=gain;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);o.stop(audioCtx.currentTime+dur);}catch(e){}}
+function tone(freq,dur=.07,gain=.015){if(!classroomSoundOn)return;try{ensureAudio();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=freq;o.type='sine';g.gain.value=gain;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);o.stop(audioCtx.currentTime+dur);}catch(e){}}
 function updateSpacing(q,ok,mode,elapsed){
   const m=st(q),now=Date.now();m.lastSeen=now;m.lastCorrect=ok;m.lastMode=mode;
   if(!ok){m.lapses=(m.lapses||0)+1;m.recallStage=Math.max(0,(m.recallStage||0)-1);m.intervalDays=.25;m.nextDueTs=now+6*3600000;return;}
@@ -314,7 +325,7 @@ function answer(text,button,timeout){
   locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
   const elapsed=clamp((TIME_LIMIT*1000-Math.max(0,deadline-Date.now()))/1000,0,TIME_LIMIT),ok=text===current.correct,m=st(current),mode=session.currentMode;
   m.attempts++;m.totalTime+=elapsed;state.answers++;let delta=-3;
-  if(ok){m.correct++;m.streak++;state.correct++;session.correct++;session.combo++;session.bestCombo=Math.max(session.bestCombo,session.combo);delta=10+(elapsed<=5?2:0)+(mode!=='RECOGNITION'?3:0)+(session.combo===3?3:session.combo===5?5:session.combo===10?10:0);tone(880,.08,.018);}else{m.misses++;m.streak=0;session.combo=0;tone(220,.10,.018);session.errors.push({id:current.id,category:current.category,concept:current.concept,prompt:session.currentPrompt,shown:timeout?'TIME':text,correct:current.correct,explanation:current.explanation,mode});if(session.type==='study'&&!session.relearnQueue.some(x=>x.id===current.id)&&!(session.retriedIds||[]).includes(current.id))session.relearnQueue.push({id:current.id,at:session.questionCount+12});}
+  if(ok){m.correct++;m.streak++;state.correct++;session.correct++;session.combo++;session.bestCombo=Math.max(session.bestCombo,session.combo);delta=10+(elapsed<=5?2:0)+(mode!=='RECOGNITION'?3:0)+(session.combo===3?3:session.combo===5?5:session.combo===10?10:0);tone(880,.07,.018);if(elapsed<=5)tone(1174,.07,.015);}else{m.misses++;m.streak=0;session.combo=0;tone(220,.10,.018);session.errors.push({id:current.id,category:current.category,concept:current.concept,prompt:session.currentPrompt,shown:timeout?'TIME':text,correct:current.correct,explanation:current.explanation,mode});if(session.type==='study'&&!session.relearnQueue.some(x=>x.id===current.id)&&!(session.retriedIds||[]).includes(current.id))session.relearnQueue.push({id:current.id,at:session.questionCount+12});}
   updateSpacing(current,ok,mode,elapsed);session.points=Math.max(0,session.points+delta);state.points=Math.max(0,state.points+delta);session.times.push(elapsed);state.studySec+=(elapsed+currentPreReadMs/1000);session.questionCount++;session.recentIds.push(current.id);session.recentConcepts.push(current.concept);
    session.recentAnswers=session.recentAnswers||[];session.recentAnswers.push(String(current.correct).trim().toLowerCase());
    session.seenInClass=session.seenInClass||[];session.seenInClass.push(current.id);
@@ -323,7 +334,7 @@ function answer(text,button,timeout){
   state.answerHistory.push({at:Date.now(),id:current.id,category:current.category,concept:current.concept,ok,time:elapsed,mode,studyType:session.type,studyMode:readFirstMode?'READ_FIRST':'STANDARD',preReadMs:currentPreReadMs,prompt:session.currentPrompt,answer:text||null,correctAnswer:current.correct,explanation:current.explanation||''});session.answerCommitted=true;state.answerHistory=QuizLearning.retain(state.answerHistory,3000,STORAGE_KEY+':answers');if(session.type==='quick')session.index++;save();
   QuizLearning.show('#questionText',session.currentPrompt,current.correct);
   [...$('answers').querySelectorAll('button.answer')].forEach(b=>{b.disabled=true;if(b.textContent===current.correct)b.classList.add('good');else b.classList.add('dim');});if(button&&!ok){button.classList.remove('dim');button.classList.add('bad');}
-  $('feedback').innerHTML=`<b>${ok?'CORRECT':timeout?'TIME':'NOT QUITE'} · ${delta>0?'+':''}${delta} PTS</b>${current.explanation||''}`;updateHud();
+  $('feedback').textContent='✓ '+session.correct+'   ✕ '+(session.questionCount-session.correct);updateHud();
   const expected=session,setQuestionCount=session.questionCount;
   const same=()=>session===expected&&session.questionCount===setQuestionCount&&!session.finished;
   const advance=()=>{if(session.type==='study'&&session.timeUp&&session.questionCount>=session.minQuestions)return finishSession(false);renderQuestion();};
