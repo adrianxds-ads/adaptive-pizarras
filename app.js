@@ -311,7 +311,22 @@ function renderQuestion(){
    }else{revealEarlyOnTap=null;NucleoReadFirstSkip.hide();host.classList.remove('read-first-hidden');[...host.children].forEach(b=>b.disabled=false);startAnswerTimer();}
 }
 function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}
-function tone(freq,dur=.07,gain=.015){if(!classroomSoundOn)return;try{ensureAudio();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=freq;o.type='sine';g.gain.value=gain;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);o.stop(audioCtx.currentTime+dur);}catch(e){}}
+function tone(freq,dur=.07,gain=.015,type='sine',delay=0){
+ if(!classroomSoundOn)return;
+ try{
+  ensureAudio();if(!audioCtx)return;
+  const t=audioCtx.currentTime+delay,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type;o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(Math.max(.0002,gain),t+.006);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.015);
+ }catch(e){console.warn('Classroom cue unavailable',e);}
+}
+function playAnswerCue(ok,timeout=false){
+ if(ok){tone(659.25,.14,.023,'triangle');tone(880,.16,.023,'sine',.080);tone(1174.66,.19,.020,'sine',.155);}
+ else{tone(timeout?392:329.63,.16,.022,'triangle');tone(timeout?246.94:220,.22,.021,'sine',.108);}
+}
 function updateSpacing(q,ok,mode,elapsed){
   const m=st(q),now=Date.now();m.lastSeen=now;m.lastCorrect=ok;m.lastMode=mode;
   if(!ok){m.lapses=(m.lapses||0)+1;m.recallStage=Math.max(0,(m.recallStage||0)-1);m.intervalDays=.25;m.nextDueTs=now+6*3600000;return;}
@@ -325,7 +340,7 @@ function answer(text,button,timeout){
   locked=true;clearInterval(timerHandle);clearTimeout(revealHandle);revealHandle=null;revealEarlyOnTap=null;
   const elapsed=clamp((TIME_LIMIT*1000-Math.max(0,deadline-Date.now()))/1000,0,TIME_LIMIT),ok=text===current.correct,m=st(current),mode=session.currentMode;
   m.attempts++;m.totalTime+=elapsed;state.answers++;let delta=-3;
-  if(ok){m.correct++;m.streak++;state.correct++;session.correct++;session.combo++;session.bestCombo=Math.max(session.bestCombo,session.combo);delta=10+(elapsed<=5?2:0)+(mode!=='RECOGNITION'?3:0)+(session.combo===3?3:session.combo===5?5:session.combo===10?10:0);tone(880,.07,.018);if(elapsed<=5)tone(1174,.07,.015);}else{m.misses++;m.streak=0;session.combo=0;tone(220,.10,.018);session.errors.push({id:current.id,category:current.category,concept:current.concept,prompt:session.currentPrompt,shown:timeout?'TIME':text,correct:current.correct,explanation:current.explanation,mode});if(session.type==='study'&&!session.relearnQueue.some(x=>x.id===current.id)&&!(session.retriedIds||[]).includes(current.id))session.relearnQueue.push({id:current.id,at:session.questionCount+12});}
+  if(ok){m.correct++;m.streak++;state.correct++;session.correct++;session.combo++;session.bestCombo=Math.max(session.bestCombo,session.combo);delta=10+(elapsed<=5?2:0)+(mode!=='RECOGNITION'?3:0)+(session.combo===3?3:session.combo===5?5:session.combo===10?10:0);playAnswerCue(true);}else{m.misses++;m.streak=0;session.combo=0;playAnswerCue(false,timeout);session.errors.push({id:current.id,category:current.category,concept:current.concept,prompt:session.currentPrompt,shown:timeout?'TIME':text,correct:current.correct,explanation:current.explanation,mode});if(session.type==='study'&&!session.relearnQueue.some(x=>x.id===current.id)&&!(session.retriedIds||[]).includes(current.id))session.relearnQueue.push({id:current.id,at:session.questionCount+12});}
   updateSpacing(current,ok,mode,elapsed);session.points=Math.max(0,session.points+delta);state.points=Math.max(0,state.points+delta);session.times.push(elapsed);state.studySec+=(elapsed+currentPreReadMs/1000);session.questionCount++;session.recentIds.push(current.id);session.recentConcepts.push(current.concept);
    session.recentAnswers=session.recentAnswers||[];session.recentAnswers.push(String(current.correct).trim().toLowerCase());
    session.seenInClass=session.seenInClass||[];session.seenInClass.push(current.id);

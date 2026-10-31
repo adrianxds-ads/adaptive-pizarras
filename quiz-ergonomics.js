@@ -1,7 +1,28 @@
 /* Quiz ergonomics 1.0.0. Presentation and cancellable advance; no grading/storage. */
 (()=>{
 'use strict';
-const CONFIG=Object.freeze({TIME_PER_QUESTION:15000,DWELL_TIME_CORRECT:320,DWELL_TIME_WRONG:420,TRANSITION_DURATION:60});
+const CONFIG=Object.freeze({TIME_PER_QUESTION:15000,DWELL_TIME_CORRECT:650,DWELL_TIME_WRONG:850,TRANSITION_DURATION:60});
+
+/* Result cue: visible on answer tiles, never changes the quiz layout or scoring. */
+function ensureArcadeCueStyles(){
+ const id="quiz-arcade-result-cues-v1";if(document.getElementById(id))return;
+ const style=document.createElement("style");style.id=id;
+ style.textContent=[
+ '#gameScreen button.answer.good,#gameScreen button.answer.bad{position:relative}',
+ '#gameScreen button.answer.good::after,#gameScreen button.answer.bad::after{',
+ 'content:"✓";position:absolute;top:4px;right:4px;width:29px;height:29px;',
+ 'display:grid;place-items:center;box-sizing:border-box;border:2px solid #fff;',
+ 'border-radius:50%;background:#116b40;color:white;font:900 22px/1 system-ui;',
+ 'box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none;',
+ 'animation:quiz-cue-pop .19s ease-out both}',
+ '#gameScreen button.answer.bad::after{content:"✕";background:#b21d36}',
+ '@keyframes quiz-cue-pop{from{opacity:.1;transform:scale(.65)}to{opacity:1;transform:scale(1)}}',
+ '@media(prefers-reduced-motion:reduce){',
+ '#gameScreen button.answer.good::after,#gameScreen button.answer.bad::after{animation:none}}'
+ ].join('');
+ document.head.append(style);
+}
+
 class QuizFlowController{
  constructor(){this.epoch=0;this.pending=new Set();this.stage=null;}
  cancel(){
@@ -19,6 +40,7 @@ class QuizFlowController{
   this.defer(()=>{if(!isCurrent())return;try{render();}catch(error){console.warn('Quiz render retry',attempt,error);this.recover(render,isCurrent,attempt+1);}},Math.min(1200,150*attempt));
  }
  afterAnswer({correct,isCurrent,advance,retry}){
+  ensureArcadeCueStyles();
   this.cancel();this.stage=document.getElementById('gameScreen');
   this.defer(()=>{
    if(!isCurrent())return;
